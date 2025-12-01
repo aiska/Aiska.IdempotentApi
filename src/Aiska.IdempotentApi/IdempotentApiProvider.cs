@@ -24,7 +24,10 @@ namespace Aiska.IdempotentApi
         {
             if (!IsValidIdempotent(context.HttpContext.Request))
             {
-                logger.LogDebug("Request is not valid for idempotency processing.");
+                if (logger.IsEnabled(LogLevel.Debug))
+                {
+                    logger.LogDebug("Request is not valid for idempotency processing.");
+                }
                 return (IdempotentResultEnum.Continue, string.Empty, new { });
             }
 
@@ -33,7 +36,10 @@ namespace Aiska.IdempotentApi
             string IdempotencyKey = headerKey.FirstOrDefault() ?? string.Empty;
             if (IdempotencyKey == string.Empty)
             {
-                logger.LogDebug("Idempotency-Key header is missing.");
+                if (logger.IsEnabled(LogLevel.Debug))
+                {
+                    logger.LogDebug("Idempotency-Key header is missing.");
+                }
                 return (IdempotentResultEnum.HeaderMissing, string.Empty, new { });
             }
 
@@ -152,7 +158,7 @@ namespace Aiska.IdempotentApi
             }
             else if (context.HttpContext.Request.HasFormContentType)
             {
-                Dictionary<string,object?> dict = [];
+                Dictionary<string, object?> dict = [];
                 foreach (var item in context.HttpContext.Request.Form)
                 {
                     dict.Add(item.Key, item.Value.FirstOrDefault() ?? null);

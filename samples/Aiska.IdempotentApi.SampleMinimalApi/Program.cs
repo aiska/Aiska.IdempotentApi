@@ -1,4 +1,3 @@
-using Aiska.IdempotentApi;
 using Aiska.IdempotentApi.Attributes;
 using Aiska.IdempotentApi.Extensions;
 using Aiska.IdempotentApi.Extensions.DependencyInjection;
