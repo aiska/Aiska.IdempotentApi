@@ -1,5 +1,4 @@
-```markdown
-# ?? Aiska.IdempotentApi
+﻿# 🚀 Aiska.IdempotentApi
 
 A .NET library for creating idempotent APIs, ensuring that requests are processed only once, even if received multiple times.
 
@@ -15,7 +14,7 @@ Making your APIs reliable and resilient with idempotency.
 ![.NET](https://img.shields.io/badge/.NET-5C2D91?style=for-the-badge&logo=.net&logoColor=white)
 ![C#](https://img.shields.io/badge/c%23-%23239120.svg?style=for-the-badge&logo=c-sharp&logoColor=white)
 
-## ?? Table of Contents
+## 📋 Table of Contents
 
 - [About](#about)
 - [Features](#features)
@@ -38,15 +37,15 @@ This library provides a straightforward way to wrap your API endpoints, ensuring
 
 The library is built using C# and targets .NET. It's designed to be lightweight and easy to integrate into existing .NET projects. The core architecture involves intercepting API requests, checking for an existing result based on the idempotency key, and either returning the stored result or processing the request and storing the result for future use.
 
-## ? Features
+## ✨ Features
 
-- ?? **Idempotency Key Handling**: Automatically manages idempotency keys provided in request headers.
-- ? **Performance**: Optimized for minimal overhead, ensuring that idempotency checks don't significantly impact API response times.
-- ?? **Concurrency**: Thread-safe implementation to handle concurrent requests safely.
-- ??? **Extensible**: Allows customization of storage mechanisms for idempotency keys and results.
-- ?? **Configurable**: Provides options to configure the behavior of the idempotency logic.
+- 🎯 **Idempotency Key Handling**: Automatically manages idempotency keys provided in request headers.
+- ⚡ **Performance**: Optimized for minimal overhead, ensuring that idempotency checks don't significantly impact API response times.
+- 🔒 **Concurrency**: Thread-safe implementation to handle concurrent requests safely.
+- 🛠️ **Extensible**: Allows customization of storage mechanisms for idempotency keys and results.
+- ⚙️ **Configurable**: Provides options to configure the behavior of the idempotency logic.
 
-## ?? Quick Start
+## 🚀 Quick Start
 
 Install the NuGet package and add the necessary middleware to your ASP.NET Core pipeline.
 
@@ -69,11 +68,11 @@ public void Configure(IApplicationBuilder app, IWebHostEnvironment env)
 }
 ```
 
-## ?? Installation
+## 📦 Installation
 
 ### Prerequisites
 
-- .NET 6.0 or later
+- .NET 6.0 or later (.Net 10 recomended)
 - An ASP.NET Core project
 
 ### NuGet Package
@@ -93,7 +92,7 @@ cd Aiska.IdempotentApi
 dotnet build
 ```
 
-## ?? Usage
+## 💻 Usage
 
 ### Basic Usage
 
@@ -106,16 +105,18 @@ dotnet build
     services.AddIdempotency(); // For .NET Core 3.1 and .NET 5
     ```
 
-2.  **Use the Idempotency Middleware**: Add the `UseIdempotency` middleware in your request pipeline.
+2.  **Add the Idempotency Filter**: Add the `UseIdempotency` Filter your request pipeline.
 
     ```csharp
     // Program.cs or Startup.cs
-    app.UseIdempotency(); // For .NET 6+
-    // OR
-    app.UseIdempotency(); // For .NET Core 3.1 and .NET 5
+    todosApi.MapPost("/", async (Todo todo) =>
+    {
+        // simulate creation
+        return Results.Created($"/todoitems/{todo.Id}", todo);
+    }).AddIdempotentFilter();
     ```
 
-3.  **Apply the `[Idempotent]` attribute to your controller actions**:
+3.  **Apply the `[Idempotent]` attribute to your controller actions**: (Still in develop not tested yet)
 
     ```csharp
     using Microsoft.AspNetCore.Mvc;
@@ -183,7 +184,7 @@ public class CustomIdempotencyStore : IIdempotencyStore
 builder.Services.AddSingleton<IIdempotencyStore, CustomIdempotencyStore>();
 ```
 
-## ?? Project Structure
+## 📁 Project Structure
 
 ```
 Aiska.IdempotentApi/
@@ -202,17 +203,17 @@ Aiska.IdempotentApi/
 ??? README.md                         # This file
 ```
 
-## ?? Contributing
+## 🤝 Contributing
 
 We welcome contributions! Please see our [Contributing Guide](CONTRIBUTING.md) (placeholder - create this file) for details.
 
 ### Quick Contribution Steps
 
-1.  ?? Fork the repository
-2.  ?? Create your feature branch (`git checkout -b feature/AmazingFeature`)
-3.  ? Commit your changes (`git commit -m 'Add some AmazingFeature'`)
-4.  ?? Push to the branch (`git push origin feature/AmazingFeature`)
-5.  ?? Open a Pull Request
+1.  🍴 Fork the repository
+2.  🌟 Create your feature branch (`git checkout -b feature/AmazingFeature`)
+3.  ✅ Commit your changes (`git commit -m 'Add some AmazingFeature'`)
+4.  📤 Push to the branch (`git push origin feature/AmazingFeature`)
+5.  🔃 Open a Pull Request
 
 ### Development Setup
 
@@ -245,27 +246,26 @@ To run the tests:
 dotnet test
 ```
 
-## ?? License
+## 📄 License
 
 This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
 
 ### License Summary
 
--   ? Commercial use
--   ? Modification
--   ? Distribution
--   ? Private use
--   ? Liability
--   ? Warranty
+-   ✅ Commercial use
+-   ✅ Modification
+-   ✅ Distribution
+-   ✅ Private use
+-   ❌ Liability
+-   ❌ Warranty
 
 ## ?? Support
 
--   ?? **Email**: aiskahendra@gmail.com
--   ?? **Issues**: [GitHub Issues](https://github.com/aiska/Aiska.IdempotentApi/issues)
+-   📧 **Email**: aiskahendra@gmail.com
+-   🐛 **Issues**: [GitHub Issues](https://github.com/aiska/Aiska.IdempotentApi/issues)
 
-## ?? Acknowledgments
+## 🙏 Acknowledgments
 
--   ?? **Libraries used**:
+-   📚 **Libraries used**:
     -   [Microsoft.Extensions.Caching.Hybrid](https://www.nuget.org/packages/Microsoft.Extensions.Caching.Hybrid/) - HybridCache library in ASP.NET Core (not yet ready to use).
--   ?? **Contributors**: Thanks to all [contributors](https://github.com/aiska/Aiska.IdempotentApi/contributors)
-```
+-   👥 **Contributors**: Thanks to all [contributors](https://github.com/aiska/Aiska.IdempotentApi/contributors)
