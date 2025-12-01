@@ -1,0 +1,5 @@
+<Solution>
+  <Project Path="samples/Aiska.IdempotentApi.SampleMinimalApi/Aiska.IdempotentApi.SampleMinimalApi.csproj" Id="7e26dacd-ab18-4840-914f-208a1d106e52" />
+  <Project Path="src/Aiska.IdempotentApi.Hybrid/Aiska.IdempotentApi.Hybrid.csproj" Id="d6f7a073-010c-42a4-a9b4-6eb8715619f9" />
+  <Project Path="src/AIska.IdempotentApi/Aiska.IdempotentApi.csproj" />
+</Solution>
