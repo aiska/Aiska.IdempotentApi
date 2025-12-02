@@ -47,7 +47,7 @@ The library is built using C# and targets .NET. It's designed to be lightweight 
 
 ## 🚀 Quick Start
 
-Install the NuGet package and add the necessary middleware to your ASP.NET Core pipeline.
+Install the NuGet package and add the necessary code to your ASP.NET Core pipeline.
 
 ```bash
 Install-Package Aiska.IdempotentApi
@@ -57,14 +57,8 @@ Install-Package Aiska.IdempotentApi
 // In your Startup.cs or Program.cs
 public void ConfigureServices(IServiceCollection services)
 {
-    services.AddIdempotency();
+    builder.Services.AddIdempotentApi(builder.Configuration);
     // Other service configurations
-}
-
-public void Configure(IApplicationBuilder app, IWebHostEnvironment env)
-{
-    app.UseIdempotency();
-    // Other middleware configurations
 }
 ```
 
