@@ -1,9 +1,3 @@
-Copyright 2025 (c) Aiska Hendra
-
-
-The MIT License (MIT)
-=====================
-
 Copyright © 2025 Aiska Hendra
 
 Permission is hereby granted, free of charge, to any person
