@@ -28,7 +28,10 @@ namespace Aiska.IdempotentApi.Services
                 return (IdempotentEnumResult.Continue, string.Empty, new { });
             }
 
-            string IdempotencyKey = context.HttpContext.Request.Headers.FirstOrDefault(h => h.Key.Equals(options.Value.KeyHeaderName, StringComparison.OrdinalIgnoreCase)).Value.ToString();
+            var headerValue = context.HttpContext.Request.Headers[options.Value.KeyHeaderName];
+            string IdempotencyKey = headerValue.FirstOrDefault() ?? string.Empty;
+            IdempotencyKey.SanitizeInput();
+
             if (IdempotencyKey == string.Empty)
             {
                 logger.MissingIdempotencyKeyHeader();
