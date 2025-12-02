@@ -10,8 +10,17 @@ on:
     branches: [ "master" ]
 
 jobs:
-  build:
+  generate-version:
+    runs-on: windows-latest
+    permissions:
+      contents: write
+    steps:
+    - uses: actions/checkout@v4
+    - name: GitHub Idempotent
+      id: idempotent
+      uses: actions/checkout@v4
 
+  build:
     runs-on: windows-latest
 
     steps:
@@ -23,6 +32,8 @@ jobs:
     - name: Restore dependencies
       run: dotnet restore
     - name: Build
-      run: dotnet build --no-restore
+      run: dotnet build --configuration Release --no-restore --source ./build
     - name: Test
       run: dotnet test --no-build --verbosity normal
+    - name: Pack the project
+      run: dotnet pack --configuration Release -p:PackageVersion=${{ github.run_number }} --no-build --output ./build
