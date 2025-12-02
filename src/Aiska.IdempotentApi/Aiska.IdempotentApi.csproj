@@ -4,9 +4,35 @@
 		<TargetFramework>net10.0</TargetFramework>
 		<ImplicitUsings>enable</ImplicitUsings>
 		<Nullable>enable</Nullable>
+		<GeneratePackageOnBuild>True</GeneratePackageOnBuild>
+		<Title>A .NET library for creating idempotent APIs</Title>
+		<Authors>AIska Hendra</Authors>
+		<Description>A .NET library for creating idempotent APIs, ensuring that requests are processed only once, even if received multiple times.</Description>
+		<RepositoryUrl>https://github.com/aiska/Aiska.IdempotentApi</RepositoryUrl>
+		<PackageReadmeFile>README.md</PackageReadmeFile>
+		<PackageTags>Idempotency</PackageTags>
+		<IncludeSymbols>True</IncludeSymbols>
+		<AnalysisLevel>latest-recommended</AnalysisLevel>
+		<SymbolPackageFormat>snupkg</SymbolPackageFormat>
+		<PackAsTool>False</PackAsTool>
+		<PackageProjectUrl>https://github.com/aiska/Aiska.IdempotentApi</PackageProjectUrl>
+		<Copyright>2025 © Aiska Hendra</Copyright>
+		<PackageRequireLicenseAcceptance>False</PackageRequireLicenseAcceptance>
+		<PackageLicenseFile>licence.md</PackageLicenseFile>
 	</PropertyGroup>
 
 	<ItemGroup>
 		<FrameworkReference Include="Microsoft.AspNetCore.App" />
+	</ItemGroup>
+
+	<ItemGroup>
+	  <None Include="..\..\docs\licence.md">
+	    <Pack>True</Pack>
+	    <PackagePath>\</PackagePath>
+	  </None>
+	  <None Include="..\..\README.md">
+	    <Pack>True</Pack>
+	    <PackagePath>\</PackagePath>
+	  </None>
 	</ItemGroup>
 </Project>

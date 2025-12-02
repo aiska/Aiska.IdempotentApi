@@ -66,7 +66,7 @@ public void ConfigureServices(IServiceCollection services)
 
 ### Prerequisites
 
-- .NET 6.0 or later (.Net 10 recomended)
+- .Net 10
 - An ASP.NET Core project
 
 ### NuGet Package
