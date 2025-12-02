@@ -40,6 +40,10 @@ This library provides a straightforward way to wrap your API endpoints, ensuring
 
 The library is built using C# and targets .NET. It's designed to be lightweight and easy to integrate into existing .NET projects. The core architecture involves intercepting API requests, checking for an existing result based on the idempotency key, and either returning the stored result or processing the request and storing the result for future use.
 
+Here is Diagram process base on [draft-ietf](https://datatracker.ietf.org/doc/draft-ietf-httpapi-idempotency-key-header/) :
+
+![Alt text](docs/idempotency_diagram.png)
+
 ## ✨ Features
 
 - 🎯 **Idempotency Key Handling**: Automatically manages idempotency keys provided in request headers.
