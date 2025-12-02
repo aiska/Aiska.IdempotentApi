@@ -4,7 +4,7 @@ using Microsoft.Extensions.Caching.Memory;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 
-namespace Aiska.IdempotentApi.Cache
+namespace Aiska.IdempotentApi.Services
 {
     public sealed class IdempotentMemoryCache : IIdempotentCache
     {
@@ -15,7 +15,10 @@ namespace Aiska.IdempotentApi.Cache
         public IdempotentMemoryCache(IOptions<IdempotentApiOptions> options, ILogger<IdempotentMemoryCache> logger)
         {
             this.logger = logger;
-            cacheOption = options.Value.CacheOptions;
+            cacheOption = new MemoryCacheEntryOptions
+            {
+                AbsoluteExpirationRelativeToNow = TimeSpan.FromMinutes(options.Value.ExpirationFromMinutes)
+            };
             var memOptions = new MemoryCacheOptions();
             cache = new MemoryCache(memOptions);
         }

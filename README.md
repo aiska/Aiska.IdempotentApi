@@ -105,7 +105,7 @@ dotnet build
     services.AddIdempotency(); // For .NET Core 3.1 and .NET 5
     ```
 
-2.  **Add the Idempotency Filter**: Add the `UseIdempotency` Filter your request pipeline.
+2.  **Add the Idempotency Filter**: Add the `AddIdempotentFilter` Filter your Endpoint Minimal Api.
 
     ```csharp
     // Program.cs or Startup.cs
@@ -115,8 +115,7 @@ dotnet build
         return Results.Created($"/todoitems/{todo.Id}", todo);
     }).AddIdempotentFilter();
     ```
-
-3.  **Apply the `[Idempotent]` attribute to your controller actions**: (Still in develop not tested yet)
+    Or **Apply the `[Idempotent]` attribute to your controller actions **:
 
     ```csharp
     using Microsoft.AspNetCore.Mvc;
@@ -157,16 +156,28 @@ dotnet build
 
 For more advanced configuration options, see the [Configuration](#configuration) section.
 
-## ?? Configuration
+## ⚙️ Configuration
 
 ### Idempotency Key Header Name
 
 The default header name is `Idempotency-Key`. You can customize this:
 
 ```csharp
-builder.Services.AddIdempotency(options =>
+builder.Services.AddIdempotentApi(options =>
 {
     options.KeyHeaderName = "X-Idempotency-Key";
+    options.ExpirationFromMinutes = 5;
+});
+```
+
+### Idempotency Cache expiration
+
+The default Cache expiration name is 5. You can customize this:
+
+```csharp
+builder.Services.AddIdempotentApi(options =>
+{
+    options.ExpirationFromMinutes = 10;
 });
 ```
 
@@ -188,19 +199,20 @@ builder.Services.AddSingleton<IIdempotencyStore, CustomIdempotencyStore>();
 
 ```
 Aiska.IdempotentApi/
-??? src/
-?   ??? Aiska.IdempotentApi/
-?   ?   ??? Attributes/              # Idempotent Attribute
-?   ?   ??? Extensions/              # Extension methods for IServiceCollection and IApplicationBuilder
-?   ?   ??? Filters/                 # Filter to check for Idempotency
-?   ?   ??? Middleware/              # Idempotency Middleware
-?   ?   ??? Services/                # Idempotency Service and Store interfaces
-?   ?   ??? Models/                  # Models for storing results
-?   ?   ??? Options/                 # Options for configuring the middleware
-?   ?   ??? ...
-?   ??? Aiska.IdempotentApi.csproj   # Project file
-??? LICENSE                           # License file
-??? README.md                         # This file
+├── src/
+│   ├── Aiska.IdempotentApi/
+│   │   ├── Abtractions/             # Idempotent Abtractions
+│   │   ├── Attributes/              # Idempotent Attribute
+│   │   ├── Extensions/              # Extension methods for IServiceCollection and IApplicationBuilder
+│   │   ├── Filters/                 # Filter to check for Idempotency
+│   │   ├── Middleware/              # Idempotency Middleware
+│   │   ├── Models/                  # Models for storing results
+│   │   ├── Options/                 # Options for configuring the middleware
+│   │   ├── Services/                # Idempotency Service and Store interfaces
+│   │   └── ...
+│   └── Aiska.IdempotentApi.csproj   # Project file
+├── LICENSE                          # License file
+└── README.md                        # This file
 ```
 
 ## 🤝 Contributing
@@ -259,10 +271,11 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 -   ❌ Liability
 -   ❌ Warranty
 
-## ?? Support
+## 💬 Support
 
--   📧 **Email**: aiskahendra@gmail.com
--   🐛 **Issues**: [GitHub Issues](https://github.com/aiska/Aiska.IdempotentApi/issues)
+-   📧 **Email**:   [aiskahendra@gmail.com](aiskahendra@gmail.com)
+-   🌐 **Website**: [aiskahendra.wordpress.com](https://aiskahendra.wordpress.com/)
+-   🐛 **Issues**:  [GitHub Issues](https://github.com/aiska/Aiska.IdempotentApi/issues)
 
 ## 🙏 Acknowledgments
 

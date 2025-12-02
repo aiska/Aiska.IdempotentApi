@@ -11,7 +11,7 @@ using System.Security.Cryptography;
 using System.Text;
 using System.Text.Json;
 
-namespace Aiska.IdempotentApi
+namespace Aiska.IdempotentApi.Services
 {
     public sealed class IdempotentApiProvider(IIdempotentCache cache,
         IOptions<IdempotentApiOptions> options,
@@ -31,7 +31,7 @@ namespace Aiska.IdempotentApi
                 return (IdempotentResultEnum.Continue, string.Empty, new { });
             }
 
-            context.HttpContext.Request.Headers.TryGetValue("Idempotency-Key", out var headerKey);
+            context.HttpContext.Request.Headers.TryGetValue(options.Value.KeyHeaderName, out var headerKey);
 
             string IdempotencyKey = headerKey.FirstOrDefault() ?? string.Empty;
             if (IdempotencyKey == string.Empty)

@@ -1,6 +1,6 @@
 ﻿using Aiska.IdempotentApi.Abtractions;
-using Aiska.IdempotentApi.Cache;
 using Aiska.IdempotentApi.Configuration;
+using Aiska.IdempotentApi.Services;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 
