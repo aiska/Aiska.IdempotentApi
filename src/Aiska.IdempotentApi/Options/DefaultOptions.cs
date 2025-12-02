@@ -3,7 +3,7 @@
     public static class DefaultOptions
     {
         public const double ExpirationFromMinutes = 5;
-        public const string HeaderKeyName = "IdempotencyKey";
+        public const string HeaderKeyName = "Idempotency-Key";
         public const string MissingHeader = "MissingHeader";
         public const string MissingHeaderTitle = "Idempotency-Key is missing";
         public const string MissingHeaderDetail = "This operation is idempotent and it requires correct usage of Idempotency Key";

@@ -1,16 +1,17 @@
 ﻿using Aiska.IdempotentApi.Abtractions;
 using Aiska.IdempotentApi.Configuration;
+using Aiska.IdempotentApi.Logging;
 using Microsoft.Extensions.Caching.Memory;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 
 namespace Aiska.IdempotentApi.Services
 {
-    public sealed class IdempotentMemoryCache : IIdempotentCache
+    public sealed class IdempotentMemoryCache : IIdempotentCache, IDisposable
     {
         private readonly MemoryCacheEntryOptions cacheOption;
         private readonly ILogger<IdempotentMemoryCache> logger;
-        private readonly MemoryCache cache;
+        private MemoryCache? cache;
 
         public IdempotentMemoryCache(IOptions<IdempotentApiOptions> options, ILogger<IdempotentMemoryCache> logger)
         {
@@ -31,18 +32,12 @@ namespace Aiska.IdempotentApi.Services
                 !cacheOption.AbsoluteExpiration.HasValue &&
                 !cacheOption.SlidingExpiration.HasValue)
             {
-                if (logger.IsEnabled(LogLevel.Warning))
-                {
-                    logger.LogWarning("Cache don't have expiration time");
-                }
+                logger.CacheExpirationEmpty();
             }
             else
             {
                 var expired = cacheOption.AbsoluteExpirationRelativeToNow;
-                if (logger.IsEnabled(LogLevel.Information))
-                {
-                    logger.LogInformation("Creating new entry with key : {key}, expiration absolut {expired}", key, expired);
-                }
+                logger.CacheEntryCreated(key, expired);
             }
             var cacheEntry = cache.CreateEntry(key).SetOptions(cacheOption);
             return cacheEntry;
@@ -56,10 +51,17 @@ namespace Aiska.IdempotentApi.Services
             return result;
         }
 
-        public void Set(string key, object? value)
+        public void SetCache(string key, object? value)
         {
             ArgumentNullException.ThrowIfNull(cache);
             cache.Set(key, value, cacheOption);
+        }
+
+        public void Dispose()
+        {
+            cache?.Dispose();
+            cache = null;
+            GC.SuppressFinalize(this);
         }
     }
 }

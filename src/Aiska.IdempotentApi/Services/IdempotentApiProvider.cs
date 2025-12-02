@@ -1,12 +1,14 @@
 ﻿using Aiska.IdempotentApi.Abtractions;
 using Aiska.IdempotentApi.Configuration;
 using Aiska.IdempotentApi.Extensions;
+using Aiska.IdempotentApi.Logging;
 using Aiska.IdempotentApi.Models;
 using Aiska.IdempotentApi.Tools;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Http.Json;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
+using System.Globalization;
 using System.Security.Cryptography;
 using System.Text;
 using System.Text.Json;
@@ -14,38 +16,28 @@ using System.Text.Json;
 namespace Aiska.IdempotentApi.Services
 {
     public sealed class IdempotentApiProvider(IIdempotentCache cache,
-        IOptions<IdempotentApiOptions> options,
-        ILogger<IdempotentApiProvider> logger,
-        IOptions<JsonOptions> jsonOptions
-        ) : IIdempotentApiProvider
+            IOptions<IdempotentApiOptions> options,
+            ILogger<IdempotentApiProvider> logger,
+            IOptions<JsonOptions> jsonOptions) : IIdempotentApiProvider
     {
-
         public async ValueTask<(IdempotentEnumResult, string, object?)> ProcessIdempotentAsync(EndpointFilterInvocationContext context)
         {
             if (!IsValidIdempotent(context.HttpContext.Request))
             {
-                if (logger.IsEnabled(LogLevel.Debug))
-                {
-                    logger.LogDebug("Request is not valid for idempotency processing.");
-                }
+                logger.InvalidIndempotentRequest();
                 return (IdempotentEnumResult.Continue, string.Empty, new { });
             }
 
-            context.HttpContext.Request.Headers.TryGetValue(options.Value.KeyHeaderName, out var headerKey);
-
-            string IdempotencyKey = headerKey.FirstOrDefault() ?? string.Empty;
+            string IdempotencyKey = context.HttpContext.Request.Headers.FirstOrDefault(h => h.Key.Equals(options.Value.KeyHeaderName, StringComparison.OrdinalIgnoreCase)).Value.ToString();
             if (IdempotencyKey == string.Empty)
             {
-                if (logger.IsEnabled(LogLevel.Debug))
-                {
-                    logger.LogDebug("Idempotency-Key header is missing.");
-                }
+                logger.MissingIdempotencyKeyHeader();
                 return (IdempotentEnumResult.HeaderMissing, string.Empty, new { });
             }
 
             string requestHeader = GetIdempotentHeader(context);
             string requestData = await GetIdempotentContent(context);
-            var hashValue = GetHashContentSHA256(string.Format("{0},{1},{2}", IdempotencyKey, requestHeader, requestData));
+            var hashValue = GetHashContentSHA256(IdempotencyKey, requestHeader, requestData);
 
             if (!cache.TryGetValue(IdempotencyKey, out IdempotentData? cacheData))
             {
@@ -54,40 +46,34 @@ namespace Aiska.IdempotentApi.Services
                 {
                     if (logger.IsEnabled(LogLevel.Information))
                     {
-                        logger.LogInformation("Idempotency-Key: {IdempotencyKey} - Cache miss, proceeding to execute action.", IdempotencyKey);
+                        logger.IdempotencyKeyCacheMiss(IdempotencyKey);
                     }
                     cacheData = new IdempotentData
                     {
                         HashValue = hashValue
                     };
                     cache.CreateEntry(IdempotencyKey);
-                    cache.Set(IdempotencyKey, cacheData);
+                    cache.SetCache(IdempotencyKey, cacheData);
                     return (IdempotentEnumResult.Success, IdempotencyKey, new { });
                 }
             }
 
             if (cacheData is not null && cacheData?.HashValue != hashValue)
             {
-                if (logger.IsEnabled(LogLevel.Information))
-                {
-                    logger.LogInformation("Idempotency-Key: {IdempotencyKey} - Reuse detected with different request data.", IdempotencyKey);
-                }
+                logger.IdempotencyKeyReuse(IdempotencyKey);
                 return (IdempotentEnumResult.Reuse, string.Empty, new { });
             }
             else if (cacheData?.ResponseCache is null)
             {
                 if (logger.IsEnabled(LogLevel.Information))
                 {
-                    logger.LogInformation("Idempotency-Key: {IdempotencyKey} - Retried request detected.", IdempotencyKey);
+                    logger.IdempotencyKeyRetried(IdempotencyKey);
                 }
                 return (IdempotentEnumResult.Retried, string.Empty, new { });
             }
             else if (cacheData?.ResponseCache is not null)
             {
-                if (logger.IsEnabled(LogLevel.Information))
-                {
-                    logger.LogInformation("Idempotency-Key: {IdempotencyKey}, with same requestData: {RequestData} detected.", IdempotencyKey, requestData);
-                }
+                logger.IdempotencyKeyCacheHit(IdempotencyKey);
                 return (IdempotentEnumResult.Idempotent, string.Empty, cacheData.ResponseCache);
             }
             return (IdempotentEnumResult.Continue, string.Empty, new { });
@@ -109,10 +95,11 @@ namespace Aiska.IdempotentApi.Services
             return JsonSerializer.Serialize(list, jsonOptions.Value.SerializerOptions);
         }
 
-        private string GetHashContentSHA256(string input)
+        private string GetHashContentSHA256(string IdempotencyKey, string requestHeader, string requestData)
         {
-            // === Allocate all necessary buffers on the stack using stackalloc ===
+            string input = IdempotencyKey + requestHeader + requestData;
 
+            // === Allocate all necessary buffers on the stack using stackalloc ===
             // Determine the maximum byte count needed for the UTF-8 input string
             int maxInputByteCount = Encoding.UTF8.GetMaxByteCount(input.Length);
 
@@ -171,31 +158,16 @@ namespace Aiska.IdempotentApi.Services
 
         public bool IsValidIdempotent(HttpRequest request)
         {
-            // If Cache is not configured
-            if (cache == null)
-            {
-                throw new Exception("An cache is not configured.");
-            }
+            ArgumentNullException.ThrowIfNull(cache);
 
             if (request.Method != HttpMethods.Post && request.Method != HttpMethods.Patch)
                 return false;
             return true;
         }
 
-        public IEnumerable<object?> getArguments(EndpointFilterInvocationContext context)
+        public IdempotentErrorMessage? GetError(IdempotentEnumResult errorResult)
         {
-            foreach (object? data in context.Arguments)
-            {
-                if (data != null)
-                {
-                    yield return data;
-                }
-            }
-        }
-
-        public IdempotentErrorMessage? GetError(IdempotentEnumResult error)
-        {
-            return error switch
+            return errorResult switch
             {
                 IdempotentEnumResult.HeaderMissing => options.Value.Errors.Where(e => e.Key == IdempotentError.MissingHeader).Select(v => v.Value).FirstOrDefault(),
                 IdempotentEnumResult.Reuse => options.Value.Errors.Where(e => e.Key == IdempotentError.Reuse).Select(v => v.Value).FirstOrDefault(),
@@ -211,7 +183,7 @@ namespace Aiska.IdempotentApi.Services
                 if (cacheData is not null)
                 {
                     cacheData.ResponseCache = result;
-                    cache.Set(cacheKey, cacheData);
+                    cache.SetCache(cacheKey, cacheData);
                 }
             }
         }

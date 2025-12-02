@@ -5,9 +5,9 @@ using Microsoft.Extensions.Logging;
 
 namespace Aiska.IdempotentApi.Filters
 {
-    public class IdempotentApiEndpointFilter(IServiceProvider serviceProvider, ILogger<IdempotentApiEndpointFilter> logger) : IIdempotentApiEndpointFilter
+    public class IdempotentApiEndpointFilter(IServiceProvider serviceProvider)
     {
-        public async ValueTask<object?> InvokeAsync(EndpointFilterInvocationContext context, EndpointFilterDelegate next, List<string?> parameters)
+        public async ValueTask<object?> InvokeAsync(EndpointFilterInvocationContext context, EndpointFilterDelegate next, List<string?> parametersList)
         {
             var service = serviceProvider.GetRequiredService<IIdempotentApiProvider>();
 
@@ -18,38 +18,18 @@ namespace Aiska.IdempotentApi.Filters
             {
                 case IdempotentEnumResult.HeaderMissing:
                     result = TypedResults.BadRequest(service.GetError(resultProcess.Item1));
-                    if (logger.IsEnabled(LogLevel.Information))
-                    {
-                        logger.LogInformation("Idempotent-API: Missing Idempotency-Key header.");
-                    }
                     break;
                 case IdempotentEnumResult.Reuse:
                     result = TypedResults.UnprocessableEntity(service.GetError(resultProcess.Item1));
-                    if (logger.IsEnabled(LogLevel.Information))
-                    {
-                        logger.LogInformation("Idempotent-API: Reused Idempotency-Key detected.");
-                    }
                     break;
                 case IdempotentEnumResult.Retried:
                     result = TypedResults.Conflict(service.GetError(resultProcess.Item1));
-                    if (logger.IsEnabled(LogLevel.Information))
-                    {
-                        logger.LogInformation("Idempotent-API: Retried request detected.");
-                    }
                     break;
                 case IdempotentEnumResult.Success:
                     result = await next(context).ConfigureAwait(false);
                     await service.CacheAsync(resultProcess.Item2, result);
-                    if (logger.IsEnabled(LogLevel.Information))
-                    {
-                        logger.LogInformation("Idempotent-API: Successfully processed and cached result for Idempotency-Key.");
-                    }
                     break;
                 case IdempotentEnumResult.Idempotent:
-                    if (logger.IsEnabled(LogLevel.Information))
-                    {
-                        logger.LogInformation("Idempotent-API: Returning cached result for Idempotency-Key.");
-                    }
                     return resultProcess.Item3;
                 default:
                     result = await next(context).ConfigureAwait(false);

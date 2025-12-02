@@ -14,7 +14,7 @@ namespace Aiska.IdempotentApi.Extensions
     [JsonSerializable(typeof(IEnumerable<KeyValuePair<string, string>>))]
     [JsonSerializable(typeof(IdempotentModel))]
     [JsonSerializable(typeof(IdempotentErrorMessage))]
-    internal partial class IdempotentJsonSerializerContext : JsonSerializerContext
+    internal sealed partial class IdempotentJsonSerializerContext : JsonSerializerContext
     {
     }
 }

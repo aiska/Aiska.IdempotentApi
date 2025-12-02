@@ -11,7 +11,7 @@ namespace Aiska.IdempotentApi.Hybrid.Cache
             throw new NotImplementedException();
         }
 
-        public void Set(string key, object? value)
+        public void SetCache(string key, object? value)
         {
             // TODO Create set cache entry
             throw new NotImplementedException();

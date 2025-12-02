@@ -8,6 +8,6 @@ namespace Aiska.IdempotentApi.Attributes
     {
         public double ExpirationFromMinutes { get; set; } = DefaultOptions.ExpirationFromMinutes;
         public string HeaderKeyName { get; set; } = DefaultOptions.HeaderKeyName;
-        public List<string> ExcludePropertyName = [];
+        public List<string> ExcludePropertyName { get; set; } = [];
     }
 }
