@@ -19,6 +19,12 @@
 		<Copyright>2025 © Aiska Hendra</Copyright>
 		<PackageRequireLicenseAcceptance>False</PackageRequireLicenseAcceptance>
 		<PackageLicenseFile>licence.md</PackageLicenseFile>
+		<BaseOutputPath>..\..\build</BaseOutputPath>
+		<Version>1.0.1</Version>
+	</PropertyGroup>
+
+	<PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
+	  <Optimize>True</Optimize>
 	</PropertyGroup>
 
 	<ItemGroup>
