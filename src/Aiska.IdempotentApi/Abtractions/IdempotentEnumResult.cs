@@ -1,6 +1,6 @@
 ﻿namespace Aiska.IdempotentApi.Abtractions
 {
-    public enum IdempotentResultEnum
+    public enum IdempotentEnumResult
     {
         Success,
         HeaderMissing,

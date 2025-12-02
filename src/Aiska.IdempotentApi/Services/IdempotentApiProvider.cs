@@ -20,7 +20,7 @@ namespace Aiska.IdempotentApi.Services
         ) : IIdempotentApiProvider
     {
 
-        public async ValueTask<(IdempotentResultEnum, string, object?)> ProcessIdempotentAsync(EndpointFilterInvocationContext context)
+        public async ValueTask<(IdempotentEnumResult, string, object?)> ProcessIdempotentAsync(EndpointFilterInvocationContext context)
         {
             if (!IsValidIdempotent(context.HttpContext.Request))
             {
@@ -28,7 +28,7 @@ namespace Aiska.IdempotentApi.Services
                 {
                     logger.LogDebug("Request is not valid for idempotency processing.");
                 }
-                return (IdempotentResultEnum.Continue, string.Empty, new { });
+                return (IdempotentEnumResult.Continue, string.Empty, new { });
             }
 
             context.HttpContext.Request.Headers.TryGetValue(options.Value.KeyHeaderName, out var headerKey);
@@ -40,7 +40,7 @@ namespace Aiska.IdempotentApi.Services
                 {
                     logger.LogDebug("Idempotency-Key header is missing.");
                 }
-                return (IdempotentResultEnum.HeaderMissing, string.Empty, new { });
+                return (IdempotentEnumResult.HeaderMissing, string.Empty, new { });
             }
 
             string requestHeader = GetIdempotentHeader(context);
@@ -62,7 +62,7 @@ namespace Aiska.IdempotentApi.Services
                     };
                     cache.CreateEntry(IdempotencyKey);
                     cache.Set(IdempotencyKey, cacheData);
-                    return (IdempotentResultEnum.Success, IdempotencyKey, new { });
+                    return (IdempotentEnumResult.Success, IdempotencyKey, new { });
                 }
             }
 
@@ -72,7 +72,7 @@ namespace Aiska.IdempotentApi.Services
                 {
                     logger.LogInformation("Idempotency-Key: {IdempotencyKey} - Reuse detected with different request data.", IdempotencyKey);
                 }
-                return (IdempotentResultEnum.Reuse, string.Empty, new { });
+                return (IdempotentEnumResult.Reuse, string.Empty, new { });
             }
             else if (cacheData?.ResponseCache is null)
             {
@@ -80,7 +80,7 @@ namespace Aiska.IdempotentApi.Services
                 {
                     logger.LogInformation("Idempotency-Key: {IdempotencyKey} - Retried request detected.", IdempotencyKey);
                 }
-                return (IdempotentResultEnum.Retried, string.Empty, new { });
+                return (IdempotentEnumResult.Retried, string.Empty, new { });
             }
             else if (cacheData?.ResponseCache is not null)
             {
@@ -88,9 +88,9 @@ namespace Aiska.IdempotentApi.Services
                 {
                     logger.LogInformation("Idempotency-Key: {IdempotencyKey}, with same requestData: {RequestData} detected.", IdempotencyKey, requestData);
                 }
-                return (IdempotentResultEnum.Idempotent, string.Empty, cacheData.ResponseCache);
+                return (IdempotentEnumResult.Idempotent, string.Empty, cacheData.ResponseCache);
             }
-            return (IdempotentResultEnum.Continue, string.Empty, new { });
+            return (IdempotentEnumResult.Continue, string.Empty, new { });
         }
 
         private string GetIdempotentHeader(EndpointFilterInvocationContext context)
@@ -193,13 +193,13 @@ namespace Aiska.IdempotentApi.Services
             }
         }
 
-        public IdempotentErrorMessage? GetError(IdempotentResultEnum error)
+        public IdempotentErrorMessage? GetError(IdempotentEnumResult error)
         {
             return error switch
             {
-                IdempotentResultEnum.HeaderMissing => options.Value.Errors.Where(e => e.Key == IdempotentError.MissingHeader).Select(v => v.Value).FirstOrDefault(),
-                IdempotentResultEnum.Reuse => options.Value.Errors.Where(e => e.Key == IdempotentError.Reuse).Select(v => v.Value).FirstOrDefault(),
-                IdempotentResultEnum.Retried => options.Value.Errors.Where(e => e.Key == IdempotentError.Retried).Select(v => v.Value).FirstOrDefault(),
+                IdempotentEnumResult.HeaderMissing => options.Value.Errors.Where(e => e.Key == IdempotentError.MissingHeader).Select(v => v.Value).FirstOrDefault(),
+                IdempotentEnumResult.Reuse => options.Value.Errors.Where(e => e.Key == IdempotentError.Reuse).Select(v => v.Value).FirstOrDefault(),
+                IdempotentEnumResult.Retried => options.Value.Errors.Where(e => e.Key == IdempotentError.Retried).Select(v => v.Value).FirstOrDefault(),
                 _ => null
             };
         }

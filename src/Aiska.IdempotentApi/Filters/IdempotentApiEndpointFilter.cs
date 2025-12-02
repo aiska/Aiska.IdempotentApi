@@ -16,28 +16,28 @@ namespace Aiska.IdempotentApi.Filters
             var resultProcess = await service.ProcessIdempotentAsync(context);
             switch (resultProcess.Item1)
             {
-                case IdempotentResultEnum.HeaderMissing:
+                case IdempotentEnumResult.HeaderMissing:
                     result = TypedResults.BadRequest(service.GetError(resultProcess.Item1));
                     if (logger.IsEnabled(LogLevel.Information))
                     {
                         logger.LogInformation("Idempotent-API: Missing Idempotency-Key header.");
                     }
                     break;
-                case IdempotentResultEnum.Reuse:
+                case IdempotentEnumResult.Reuse:
                     result = TypedResults.UnprocessableEntity(service.GetError(resultProcess.Item1));
                     if (logger.IsEnabled(LogLevel.Information))
                     {
                         logger.LogInformation("Idempotent-API: Reused Idempotency-Key detected.");
                     }
                     break;
-                case IdempotentResultEnum.Retried:
+                case IdempotentEnumResult.Retried:
                     result = TypedResults.Conflict(service.GetError(resultProcess.Item1));
                     if (logger.IsEnabled(LogLevel.Information))
                     {
                         logger.LogInformation("Idempotent-API: Retried request detected.");
                     }
                     break;
-                case IdempotentResultEnum.Success:
+                case IdempotentEnumResult.Success:
                     result = await next(context).ConfigureAwait(false);
                     await service.CacheAsync(resultProcess.Item2, result);
                     if (logger.IsEnabled(LogLevel.Information))
@@ -45,7 +45,7 @@ namespace Aiska.IdempotentApi.Filters
                         logger.LogInformation("Idempotent-API: Successfully processed and cached result for Idempotency-Key.");
                     }
                     break;
-                case IdempotentResultEnum.Idempotent:
+                case IdempotentEnumResult.Idempotent:
                     if (logger.IsEnabled(LogLevel.Information))
                     {
                         logger.LogInformation("Idempotent-API: Returning cached result for Idempotency-Key.");
