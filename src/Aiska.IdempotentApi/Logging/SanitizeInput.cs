@@ -20,8 +20,7 @@ namespace Aiska.IdempotentApi.Logging
             return $"[{sanitized}]";
         }
 
-        [GeneratedRegex(@"[\x00-\x09\x0B-\x1F\x7F]")]
-        [GeneratedRegex(@"[^ -~]")]
+        [GeneratedRegex(@"[\x00-\x09\x0B-\x1F\x7F]|[^ -~]")]
         private static partial Regex AsciiOnly();
     }
 }
