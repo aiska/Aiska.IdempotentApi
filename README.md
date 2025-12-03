@@ -10,7 +10,7 @@ Making your APIs reliable and resilient with idempotency.
 ![GitHub issues](https://img.shields.io/github/issues/aiska/Aiska.IdempotentApi)
 ![GitHub pull requests](https://img.shields.io/github/issues-pr/aiska/Aiska.IdempotentApi)
 ![GitHub last commit](https://img.shields.io/github/last-commit/aiska/Aiska.IdempotentApi)
-![GitHub contributors](https://img.shields.io/github/contributors/aiska/AIska.IdempotentApi)
+![GitHub contributors](https://img.shields.io/github/contributors/aiska/Aiska.IdempotentApi)
 
 ![.NET](https://img.shields.io/badge/.NET-5C2D91?style=for-the-badge&logo=.net&logoColor=white)
 ![C#](https://img.shields.io/badge/c%23-%23239120.svg?style=for-the-badge&logo=c-sharp&logoColor=white)

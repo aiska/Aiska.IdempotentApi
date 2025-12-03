@@ -8,7 +8,6 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Http.Json;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
-using System.Globalization;
 using System.Security.Cryptography;
 using System.Text;
 using System.Text.Json;
@@ -29,8 +28,7 @@ namespace Aiska.IdempotentApi.Services
             }
 
             var headerValue = context.HttpContext.Request.Headers[options.Value.KeyHeaderName];
-            string IdempotencyKey = headerValue.FirstOrDefault() ?? string.Empty;
-            IdempotencyKey.SanitizeInput();
+            string IdempotencyKey = (headerValue.FirstOrDefault() ?? string.Empty).SanitizeInput();
 
             if (IdempotencyKey == string.Empty)
             {

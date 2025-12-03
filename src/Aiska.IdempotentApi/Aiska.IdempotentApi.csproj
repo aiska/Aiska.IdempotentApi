@@ -6,7 +6,7 @@
 		<Nullable>enable</Nullable>
 		<GeneratePackageOnBuild>True</GeneratePackageOnBuild>
 		<Title>A .NET library for creating idempotent APIs</Title>
-		<Authors>AIska Hendra</Authors>
+		<Authors>Aiska Hendra</Authors>
 		<Description>A .NET library for creating idempotent APIs, ensuring that requests are processed only once, even if received multiple times.</Description>
 		<RepositoryUrl>https://github.com/aiska/Aiska.IdempotentApi</RepositoryUrl>
 		<PackageReadmeFile>README.md</PackageReadmeFile>

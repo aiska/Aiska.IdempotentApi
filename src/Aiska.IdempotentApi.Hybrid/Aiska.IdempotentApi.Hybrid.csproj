@@ -12,7 +12,7 @@
 	</ItemGroup>
 
 	<ItemGroup>
-	  <ProjectReference Include="..\AIska.IdempotentApi\Aiska.IdempotentApi.csproj" />
+	  <ProjectReference Include="..\Aiska.IdempotentApi\Aiska.IdempotentApi.csproj" />
 	</ItemGroup>
 
 </Project>

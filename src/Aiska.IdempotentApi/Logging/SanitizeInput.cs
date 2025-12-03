@@ -14,7 +14,7 @@ namespace Aiska.IdempotentApi.Logging
                 return input;
             }
             string sanitized = input.Replace("\r", "").Replace("\n", "");
-            AsciiOnly().Replace(sanitized, "");
+            sanitized = AsciiOnly().Replace(sanitized, "");
 
             return sanitized;
         }
