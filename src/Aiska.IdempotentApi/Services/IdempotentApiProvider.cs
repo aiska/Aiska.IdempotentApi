@@ -28,7 +28,7 @@ namespace Aiska.IdempotentApi.Services
             }
 
             var headerValue = context.HttpContext.Request.Headers[options.Value.KeyHeaderName];
-            string IdempotencyKey = (headerValue.FirstOrDefault() ?? string.Empty).SanitizeInput();
+            string IdempotencyKey = (headerValue.FirstOrDefault() ?? string.Empty);
 
             if (IdempotencyKey == string.Empty)
             {
@@ -36,7 +36,7 @@ namespace Aiska.IdempotentApi.Services
                 return (IdempotentEnumResult.HeaderMissing, string.Empty, new { });
             }
 
-            string requestHeader = GetIdempotentHeader(context);
+            string requestHeader = context.HttpContext.Request.Headers[options.Value.KeyHeaderName].ToString() ?? string.Empty;
             string requestData = await GetIdempotentContent(context);
             var hashValue = GetHashContentSHA256(IdempotencyKey, requestHeader, requestData);
 
@@ -78,22 +78,6 @@ namespace Aiska.IdempotentApi.Services
                 return (IdempotentEnumResult.Idempotent, string.Empty, cacheData.ResponseCache);
             }
             return (IdempotentEnumResult.Continue, string.Empty, new { });
-        }
-
-        private string GetIdempotentHeader(EndpointFilterInvocationContext context)
-        {
-            Dictionary<string, object?> list = [];
-            if (context == null) return string.Empty;
-            foreach (var header in context.HttpContext.Request.Headers)
-            {
-                bool include = options.Value.IncludeHeaders.Any(item => item.Contains(header.Key, StringComparison.OrdinalIgnoreCase));
-                if (include)
-                {
-                    if ((header.Value.FirstOrDefault() ?? string.Empty) == string.Empty) continue;
-                    list.Add(header.Key, header.Value.FirstOrDefault() ?? string.Empty);
-                }
-            }
-            return JsonSerializer.Serialize(list, jsonOptions.Value.SerializerOptions);
         }
 
         private string GetHashContentSHA256(string IdempotencyKey, string requestHeader, string requestData)
