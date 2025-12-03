@@ -47,7 +47,7 @@ namespace Aiska.IdempotentApi.Services
                 {
                     if (logger.IsEnabled(LogLevel.Information))
                     {
-                        logger.IdempotencyKeyCacheMiss(IdempotencyKey);
+                        logger.IdempotencyKeyCacheMiss(IdempotencyKey.SanitizeInput());
                     }
                     cacheData = new IdempotentData
                     {
@@ -61,20 +61,20 @@ namespace Aiska.IdempotentApi.Services
 
             if (cacheData is not null && cacheData?.HashValue != hashValue)
             {
-                logger.IdempotencyKeyReuse(IdempotencyKey);
+                logger.IdempotencyKeyReuse(IdempotencyKey.SanitizeInput());
                 return (IdempotentEnumResult.Reuse, string.Empty, new { });
             }
             else if (cacheData?.ResponseCache is null)
             {
                 if (logger.IsEnabled(LogLevel.Information))
                 {
-                    logger.IdempotencyKeyRetried(IdempotencyKey);
+                    logger.IdempotencyKeyRetried(IdempotencyKey.SanitizeInput());
                 }
                 return (IdempotentEnumResult.Retried, string.Empty, new { });
             }
             else if (cacheData?.ResponseCache is not null)
             {
-                logger.IdempotencyKeyCacheHit(IdempotencyKey);
+                logger.IdempotencyKeyCacheHit(IdempotencyKey.SanitizeInput());
                 return (IdempotentEnumResult.Idempotent, string.Empty, cacheData.ResponseCache);
             }
             return (IdempotentEnumResult.Continue, string.Empty, new { });

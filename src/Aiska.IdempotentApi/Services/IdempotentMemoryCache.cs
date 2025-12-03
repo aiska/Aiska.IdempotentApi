@@ -37,7 +37,7 @@ namespace Aiska.IdempotentApi.Services
             else
             {
                 var expired = cacheOption.AbsoluteExpirationRelativeToNow;
-                logger.CacheEntryCreated(key, expired);
+                logger.CacheEntryCreated(key.SanitizeInput(), expired);
             }
             var cacheEntry = cache.CreateEntry(key).SetOptions(cacheOption);
             return cacheEntry;
