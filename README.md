@@ -44,6 +44,7 @@ Here is Diagram process base on [draft-ietf](https://datatracker.ietf.org/doc/dr
 
 ![Alt text](docs/idempotency_diagram.png)
 
+<a id="features"></a>
 ## ✨ Features
 
 - 🎯 **Idempotency Key Handling**: Automatically manages idempotency keys provided in request headers.
@@ -52,6 +53,7 @@ Here is Diagram process base on [draft-ietf](https://datatracker.ietf.org/doc/dr
 - 🛠️ **Extensible**: Allows customization of storage mechanisms for idempotency keys and results.
 - ⚙️ **Configurable**: Provides options to configure the behavior of the idempotency logic.
 
+<a id="quick-Start"></a>
 ## 🚀 Quick Start
 
 Install the NuGet package and add the necessary code to your ASP.NET Core pipeline.
@@ -69,6 +71,7 @@ public void ConfigureServices(IServiceCollection services)
 }
 ```
 
+<a id="installation"></a>
 ## 📦 Installation
 
 ### Prerequisites
@@ -93,6 +96,7 @@ cd Aiska.IdempotentApi
 dotnet build
 ```
 
+<a id="usage"></a>
 ## 💻 Usage
 
 ### Basic Usage
@@ -157,6 +161,7 @@ dotnet build
 
 For more advanced configuration options, see the [Configuration](#configuration) section.
 
+<a id="configuration"></a>
 ## ⚙️ Configuration
 
 ### Idempotency Key Header Name
@@ -196,6 +201,7 @@ public class CustomIdempotencyStore : IIdempotencyStore
 builder.Services.AddSingleton<IIdempotencyStore, CustomIdempotencyStore>();
 ```
 
+<a id="project-structure"></a>
 ## 📁 Project Structure
 
 ```
@@ -216,6 +222,7 @@ Aiska.IdempotentApi/
 └── README.md                        # This file
 ```
 
+<a id="contributing"></a>
 ## 🤝 Contributing
 
 We welcome contributions! Please see our [Contributing Guide](CONTRIBUTING.md) (placeholder - create this file) for details.
@@ -251,6 +258,7 @@ dotnet test
 -   Add tests for new features
 -   Update documentation as needed
 
+<a id="testing"></a>
 ## Testing
 
 To run the tests:
@@ -259,6 +267,7 @@ To run the tests:
 dotnet test
 ```
 
+<a id="license"></a>
 ## 📄 License
 
 This project is licensed under the MIT License - see the [LICENSE](docs/licence.md) file for details.
@@ -272,12 +281,14 @@ This project is licensed under the MIT License - see the [LICENSE](docs/licence.
 -   ❌ Liability
 -   ❌ Warranty
 
+<a id="support"></a>
 ## 💬 Support
 
 -   📧 **Email**:   [aiskahendra@gmail.com](aiskahendra@gmail.com)
 -   🌐 **Website**: [aiskahendra.wordpress.com](https://aiskahendra.wordpress.com/)
 -   🐛 **Issues**:  [GitHub Issues](https://github.com/aiska/Aiska.IdempotentApi/issues)
 
+<a id="acknowledgments"></a>
 ## 🙏 Acknowledgments
 
 -   📚 **Libraries used**:
