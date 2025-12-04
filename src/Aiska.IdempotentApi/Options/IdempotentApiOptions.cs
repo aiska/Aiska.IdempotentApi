@@ -1,5 +1,4 @@
-﻿using Aiska.IdempotentApi.Abtractions;
-using Aiska.IdempotentApi.Extensions;
+﻿using Aiska.IdempotentApi.Extensions;
 using Aiska.IdempotentApi.Options;
 
 namespace Aiska.IdempotentApi.Configuration
@@ -13,12 +12,19 @@ namespace Aiska.IdempotentApi.Configuration
 
         public double ExpirationFromMinutes { get; set; } = DefaultOptions.ExpirationFromMinutes;
 
-        public List<KeyValuePair<string, IdempotentErrorMessage>> Errors { get; set; } =
-            [
-                new KeyValuePair<string, IdempotentErrorMessage>(IdempotentError.MissingHeader,new(string.Empty, DefaultOptions.MissingHeaderTitle,DefaultOptions.MissingHeaderDetail)),
-                new KeyValuePair<string, IdempotentErrorMessage>(IdempotentError.Reuse,new(string.Empty, DefaultOptions.ReuseTitle,DefaultOptions.ReuseDetail)),
-                new KeyValuePair<string, IdempotentErrorMessage>(IdempotentError.Retried,new(string.Empty, DefaultOptions.RetriedTitle,DefaultOptions.RetriedDetail))
-            ];
-        public List<string> IncludeHeaders { get; internal set; } = ["Host", "Authorization", "Cookie", "Content-Type"];
+        public ErrorMessage Errors { get; set; } = new();
+    }
+
+    public class ErrorMessage
+    {
+        public string MissingHeaderType { get; set; } = "";
+        public string MissingHeaderTitle { get; set; } = IdempotentError.MissingHeader;
+        public string MissingHeaderDetail { get; set; } = IdempotentError.MissingHeaderDetail;
+        public string ReuseType { get; set; } = "";
+        public string ReuseTitle { get; set; } = IdempotentError.ReuseTitle;
+        public string ReuseDetail { get; set; } = IdempotentError.ReuseDetail;
+        public string RetriedType { get; set; } = "";
+        public string RetriedTitle { get; set; } = IdempotentError.RetriedTitle;
+        public string RetriedDetail { get; set; } = IdempotentError.RetriedDetail;
     }
 }

@@ -4,7 +4,7 @@ namespace Aiska.IdempotentApi.Logging
 {
     internal static partial class LogMessages
     {
-        [LoggerMessage(EventId = 1,Level = LogLevel.Information,Message = "Request is not valid for idempotency processing.")]
+        [LoggerMessage(EventId = 1, Level = LogLevel.Information, Message = "Request is not valid for idempotency processing.")]
         public static partial void InvalidIndempotentRequest(this ILogger logger);
 
         [LoggerMessage(EventId = 2, Level = LogLevel.Information, Message = "Idempotency-Key header is missing.")]

@@ -11,5 +11,6 @@
         public const string Retried = "Retried";
         public const string RetriedTitle = "A request is outstanding for this Idempotency-Key";
         public const string RetriedDetail = "A request with the same Idempotency-Key for the same operation is being processed or is outstanding.";
+
     }
 }

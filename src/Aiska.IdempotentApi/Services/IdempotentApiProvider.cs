@@ -8,81 +8,78 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Http.Json;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
+using System.Net.Mime;
 using System.Security.Cryptography;
 using System.Text;
 using System.Text.Json;
+using System.Text.Json.Nodes;
 
 namespace Aiska.IdempotentApi.Services
 {
-    public sealed class IdempotentApiProvider(IIdempotentCache cache,
+    internal sealed class IdempotentApiProvider(IIdempotentCache cache,
             IOptions<IdempotentApiOptions> options,
             ILogger<IdempotentApiProvider> logger,
             IOptions<JsonOptions> jsonOptions) : IIdempotentApiProvider
     {
-        public async ValueTask<(IdempotentEnumResult, string, object?)> ProcessIdempotentAsync(EndpointFilterInvocationContext context)
+
+        async Task<IdempotentEnumResult> IIdempotentApiProvider.ProcessIdempotentAsync(IdempotentRequest request)
         {
-            if (!IsValidIdempotent(context.HttpContext.Request))
-            {
-                logger.InvalidIndempotentRequest();
-                return (IdempotentEnumResult.Continue, string.Empty, new { });
-            }
+            ArgumentNullException.ThrowIfNull(request);
 
-            var headerValue = context.HttpContext.Request.Headers[options.Value.KeyHeaderName];
-            string IdempotencyKey = (headerValue.FirstOrDefault() ?? string.Empty);
-
-            if (IdempotencyKey == string.Empty)
+            if (request.IdempotentHeader == string.Empty)
             {
                 logger.MissingIdempotencyKeyHeader();
-                return (IdempotentEnumResult.HeaderMissing, string.Empty, new { });
+                return IdempotentEnumResult.HeaderMissing;
             }
 
-            string requestHeader = context.HttpContext.Request.Headers[options.Value.KeyHeaderName].ToString() ?? string.Empty;
-            string requestData = await GetIdempotentContent(context);
-            var hashValue = GetHashContentSHA256(IdempotencyKey, requestHeader, requestData);
+            request.RequestData = await GetIdempotentContent(request);
+            request.HashValue = GetHashContentSHA256(request.IdempotentHeader, request.RequestData);
 
-            if (!cache.TryGetValue(IdempotencyKey, out IdempotentData? cacheData))
+            if (!cache.TryGetValue(request.IdempotentHeader, out IdempotentData? cacheData))
             {
-                using var accessLock = await AccessLock.CreateAsync(IdempotencyKey);
-                if (!cache.TryGetValue(IdempotencyKey, out cacheData))
+                using var accessLock = await AccessLock.CreateAsync(request.IdempotentHeader);
+                if (!cache.TryGetValue(request.IdempotentHeader, out cacheData))
                 {
                     if (logger.IsEnabled(LogLevel.Information))
                     {
-                        logger.IdempotencyKeyCacheMiss(IdempotencyKey.SanitizeInput());
+                        logger.IdempotencyKeyCacheMiss(request.IdempotentHeader.SanitizeInput());
                     }
                     cacheData = new IdempotentData
                     {
-                        HashValue = hashValue
+                        HashValue = GetHashContentSHA256(request.IdempotentHeader, request.RequestData)
                     };
-                    cache.CreateEntry(IdempotencyKey);
-                    cache.SetCache(IdempotencyKey, cacheData);
-                    return (IdempotentEnumResult.Success, IdempotencyKey, new { });
+                    cache.CreateEntry(request.IdempotentHeader);
+                    cache.SetCache(request.IdempotentHeader, cacheData);
+                    return IdempotentEnumResult.Success;
                 }
             }
+            request.CacheData = cacheData;
 
-            if (cacheData is not null && cacheData?.HashValue != hashValue)
+
+            if (request.CacheData is not null && request.CacheData?.HashValue != request.HashValue)
             {
-                logger.IdempotencyKeyReuse(IdempotencyKey.SanitizeInput());
-                return (IdempotentEnumResult.Reuse, string.Empty, new { });
+                logger.IdempotencyKeyReuse(request.IdempotentHeader.SanitizeInput());
+                return IdempotentEnumResult.Reuse;
             }
-            else if (cacheData?.ResponseCache is null)
+            else if (request?.CacheData?.ResponseCache is null)
             {
                 if (logger.IsEnabled(LogLevel.Information))
                 {
-                    logger.IdempotencyKeyRetried(IdempotencyKey.SanitizeInput());
+                    logger.IdempotencyKeyRetried(request?.IdempotentHeader.SanitizeInput() ?? string.Empty);
                 }
-                return (IdempotentEnumResult.Retried, string.Empty, new { });
+                return IdempotentEnumResult.Retried;
             }
-            else if (cacheData?.ResponseCache is not null)
+            else if (request.CacheData?.ResponseCache is not null)
             {
-                logger.IdempotencyKeyCacheHit(IdempotencyKey.SanitizeInput());
-                return (IdempotentEnumResult.Idempotent, string.Empty, cacheData.ResponseCache);
+                logger.IdempotencyKeyCacheHit(request.IdempotentHeader.SanitizeInput());
+                return IdempotentEnumResult.Idempotent;
             }
-            return (IdempotentEnumResult.Continue, string.Empty, new { });
+            return IdempotentEnumResult.Continue;
         }
 
-        private string GetHashContentSHA256(string IdempotencyKey, string requestHeader, string requestData)
+        private string GetHashContentSHA256(string IdempotencyKey, string requestData)
         {
-            string input = IdempotencyKey + requestHeader + requestData;
+            string input = IdempotencyKey + requestData;
 
             // === Allocate all necessary buffers on the stack using stackalloc ===
             // Determine the maximum byte count needed for the UTF-8 input string
@@ -119,29 +116,49 @@ namespace Aiska.IdempotentApi.Services
             return finalHashString;
         }
 
-        private async ValueTask<string> GetIdempotentContent(EndpointFilterInvocationContext context)
+        private async ValueTask<string> GetIdempotentContent(IdempotentRequest request)
         {
-            if (context.HttpContext.Request.HasJsonContentType())
+            if (request != null && request.Parameters.Count > 0)
             {
-                foreach (var argument in context.Arguments)
+                if (request.ContentType.StartsWith(MediaTypeNames.Application.Json, StringComparison.OrdinalIgnoreCase))
                 {
-                    return JsonSerializer.Serialize(argument, jsonOptions.Value.SerializerOptions);
+                    foreach (var parameter in request.Parameters)
+                    {
+                        string json = JsonSerializer.Serialize(parameter.Value, parameter.Type, jsonOptions.Value.SerializerOptions);
+                        if (parameter.Excludes.Length > 0)
+                        {
+                            JsonObject? jsonObject = JsonObject.Parse(json)?.AsObject();
+                            if (jsonObject != null)
+                            {
+                                foreach (var item in parameter.Excludes)
+                                {
+                                    jsonObject.Remove(item);
+                                    string lower = item.FirstCharToLower();
+                                    jsonObject.Remove(lower);
+                                }
+                                return jsonObject.ToJsonString();
+                            }
+                        }
+                        return json;
+                    }
                 }
-            }
-            else if (context.HttpContext.Request.HasFormContentType)
-            {
-                Dictionary<string, object?> dict = [];
-                foreach (var item in context.HttpContext.Request.Form)
+                else if (request.ContentType.StartsWith(MediaTypeNames.Application.FormUrlEncoded, StringComparison.OrdinalIgnoreCase))
                 {
-                    dict.Add(item.Key, item.Value.FirstOrDefault() ?? null);
+                    Dictionary<string, object?> data = [];
+                    foreach (var item in request.Parameters)
+                    {
+                        if (item.Value != null && !item.Excludes.Contains(item.Name, StringComparer.OrdinalIgnoreCase))
+                        {
+                            data.Add(item.Name, item.Value);
+                        }
+                    }
+                    return JsonSerializer.Serialize(data, jsonOptions.Value.SerializerOptions);
                 }
-                //var forms = context.HttpContext.Request.Form.Select(t => new KeyValuePair<string,object?>(t.Key, t.Value.FirstOrDefault() ?? string.Empty)).ToList();
-                return JsonSerializer.Serialize(dict, jsonOptions.Value.SerializerOptions);
             }
             return string.Empty;
         }
 
-        public bool IsValidIdempotent(HttpRequest request)
+        bool IIdempotentApiProvider.IsValidIdempotent(HttpRequest request)
         {
             ArgumentNullException.ThrowIfNull(cache);
 
@@ -150,18 +167,7 @@ namespace Aiska.IdempotentApi.Services
             return true;
         }
 
-        public IdempotentErrorMessage? GetError(IdempotentEnumResult errorResult)
-        {
-            return errorResult switch
-            {
-                IdempotentEnumResult.HeaderMissing => options.Value.Errors.Where(e => e.Key == IdempotentError.MissingHeader).Select(v => v.Value).FirstOrDefault(),
-                IdempotentEnumResult.Reuse => options.Value.Errors.Where(e => e.Key == IdempotentError.Reuse).Select(v => v.Value).FirstOrDefault(),
-                IdempotentEnumResult.Retried => options.Value.Errors.Where(e => e.Key == IdempotentError.Retried).Select(v => v.Value).FirstOrDefault(),
-                _ => null
-            };
-        }
-
-        public async Task CacheAsync(string cacheKey, object? result)
+        async Task IIdempotentApiProvider.CacheAsync(string cacheKey, object? result)
         {
             if (cache.TryGetValue(cacheKey, out IdempotentData? cacheData))
             {
@@ -171,6 +177,30 @@ namespace Aiska.IdempotentApi.Services
                     cache.SetCache(cacheKey, cacheData);
                 }
             }
+        }
+
+        IdempotentErrorMessage IIdempotentApiProvider.MissingHeaderError()
+        {
+            return new IdempotentErrorMessage(
+                options.Value.Errors.MissingHeaderType,
+                options.Value.Errors.MissingHeaderTitle,
+                options.Value.Errors.MissingHeaderDetail
+            );
+        }
+        IdempotentErrorMessage IIdempotentApiProvider.RetriedError()
+        {
+            return new IdempotentErrorMessage(
+                options.Value.Errors.RetriedType,
+                options.Value.Errors.RetriedTitle,
+                options.Value.Errors.RetriedDetail
+            );
+        }
+        IdempotentErrorMessage IIdempotentApiProvider.ReuseError()
+        {
+            return new IdempotentErrorMessage(
+                options.Value.Errors.ReuseType,
+                options.Value.Errors.ReuseTitle,
+                options.Value.Errors.ReuseDetail);
         }
     }
 }

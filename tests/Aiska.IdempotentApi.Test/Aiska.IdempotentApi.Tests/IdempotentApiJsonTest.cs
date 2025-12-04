@@ -7,8 +7,8 @@ namespace Aiska.IdempotentApi.Tests
     [TestClass]
     public class IdempotentApiJsonTest
     {
-        private HttpClient _client;
-        private CustomWebApplicationFactory<Program> _factory;
+        private HttpClient? _client;
+        private CustomWebApplicationFactory<Program>? _factory;
 
         [TestInitialize]
         public void Setup()
@@ -20,8 +20,8 @@ namespace Aiska.IdempotentApi.Tests
         [TestCleanup]
         public void Cleanup()
         {
-            _client.Dispose();
-            _factory.Dispose();
+            _client?.Dispose();
+            _factory?.Dispose();
         }
 
         [TestMethod]
@@ -35,14 +35,20 @@ namespace Aiska.IdempotentApi.Tests
                 mediaType: MediaTypeNames.Application.Json
             );
 
-            var response = await _client.PostAsync("/todos", httpContent);
+            if (_client is not null)
+            {
+                var response = await _client.PostAsync("/todos", httpContent, TestContext.CancellationToken);
 
-            Assert.AreEqual(HttpStatusCode.BadRequest, response.StatusCode);
+                Assert.AreEqual(HttpStatusCode.BadRequest, response.StatusCode);
+
+            }
         }
 
         [TestMethod]
         public async Task AppIdempotentApiJsonSuccessTest()
         {
+            ArgumentNullException.ThrowIfNull(_client);
+
             string jsonPayload = "{\"id\": 1, \"title\": \"Buy Milk\"}";
 
             HttpContent httpContent = new StringContent(
@@ -50,7 +56,7 @@ namespace Aiska.IdempotentApi.Tests
                 encoding: Encoding.UTF8,
                 mediaType: MediaTypeNames.Application.Json
             );
-            httpContent.Headers.Add("Idempotency-Key",Guid.NewGuid().ToString());
+            httpContent.Headers.Add("Idempotency-Key", Guid.NewGuid().ToString());
 
             var response = await _client.PostAsync("/todos", httpContent);
             response.EnsureSuccessStatusCode();
@@ -61,6 +67,7 @@ namespace Aiska.IdempotentApi.Tests
         [TestMethod]
         public async Task AppIdempotentApiRetriedTest()
         {
+            ArgumentNullException.ThrowIfNull(_client);
             var key = Guid.NewGuid().ToString();
 
             string jsonPayload = "{\"id\": 1, \"title\": \"Buy Milk\"}";
@@ -72,17 +79,22 @@ namespace Aiska.IdempotentApi.Tests
             );
             httpContent.Headers.Add("Idempotency-Key", key);
 
-            var task = _client.PostAsync("/todos", httpContent);
+            var task = _client.PostAsync("/todos", httpContent, TestContext.CancellationToken);
 
-            await Task.Delay(1000);
+            await Task.Delay(1000, TestContext.CancellationToken);
 
             var response = await _client.PostAsync("/todos", httpContent);
 
             Assert.AreEqual(HttpStatusCode.Conflict, response.StatusCode);
+
+            await task;
         }
+
         [TestMethod]
         public async Task AppIdempotentApiReusedTest()
         {
+            ArgumentNullException.ThrowIfNull(_client);
+
             var key = Guid.NewGuid().ToString();
 
             string jsonPayload = "{\"id\": 1, \"title\": \"Buy Milk\"}";
@@ -116,6 +128,8 @@ namespace Aiska.IdempotentApi.Tests
         [TestMethod]
         public async Task AppIdempotentApiJsonCachedTest()
         {
+            ArgumentNullException.ThrowIfNull(_client);
+
             var key = Guid.NewGuid().ToString();
 
             string jsonPayload = "{\"id\": 1, \"title\": \"Buy Milk\"}";
@@ -127,10 +141,12 @@ namespace Aiska.IdempotentApi.Tests
             );
             httpContent.Headers.Add("Idempotency-Key", key);
 
-            var response = await _client.PostAsync("/todos/Json", httpContent);
-            response = await _client.PostAsync("/todos", httpContent);
+            var response = await _client.PostAsync("/todos/Json", httpContent, TestContext.CancellationToken);
+            response = await _client.PostAsync("/todos", httpContent, TestContext.CancellationToken);
 
             Assert.AreEqual(HttpStatusCode.Created, response.StatusCode);
         }
+
+        public TestContext TestContext { get; set; }
     }
 }

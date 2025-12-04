@@ -40,14 +40,14 @@ todosApi.MapGet("/", () => sampleTodos)
         .WithName("GetTodos")
         .AddIdempotentFilter();
 
-todosApi.MapGet("/{id}", Results<Ok<Todo>, NotFound> ([IdempotentKey] int id) =>
+todosApi.MapGet("/{id}", Results<Ok<Todo>, NotFound> (int id) =>
     sampleTodos.FirstOrDefault(a => a.Id == id) is { } todo
         ? TypedResults.Ok(todo)
         : TypedResults.NotFound())
         .WithName("GetTodoById")
         .AddIdempotentFilter();
 
-todosApi.MapPost("/", async (Todo todo) =>
+todosApi.MapPost("/", async ([IdempotentExclude("IsComplete", "DueBy")] Todo todo) =>
 {
     //simulate creation
     await Task.Delay(10 * 1000);
@@ -56,7 +56,7 @@ todosApi.MapPost("/", async (Todo todo) =>
     .WithName("CreateTodo")
     .AddIdempotentFilter();
 
-todosApi.MapPost("/form", async ([FromForm][IdempotentKey] int id, [FromForm] string Title, [FromForm] DateOnly? DueDate) =>
+todosApi.MapPost("/form", async ([FromForm] int id, [FromForm] string Title, [FromForm] DateOnly? DueDate, [FromForm] bool? IsComplete) =>
 {
     var todo = new Todo(id, Title, DueDate);
     //simulate creation

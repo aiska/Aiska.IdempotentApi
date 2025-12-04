@@ -3,8 +3,8 @@
     [TestClass]
     public class IdempotentApiTest
     {
-        private HttpClient _client;
-        private CustomWebApplicationFactory<Program> _factory;
+        private HttpClient? _client;
+        private CustomWebApplicationFactory<Program>? _factory;
 
         [TestInitialize]
         public void Setup()
@@ -16,13 +16,15 @@
         [TestCleanup]
         public void Cleanup()
         {
-            _client.Dispose();
-            _factory.Dispose();
+            _client?.Dispose();
+            _factory?.Dispose();
         }
 
         [TestMethod]
         public async Task AppDefaultGetTest()
         {
+            ArgumentNullException.ThrowIfNull(_client);
+
             // Act
             var response = await _client.GetAsync("/todos");
             response.EnsureSuccessStatusCode();
@@ -35,6 +37,8 @@
         [TestMethod]
         public async Task AppDefaultGetWithParamTest()
         {
+            ArgumentNullException.ThrowIfNull(_client);
+
             // Act
             var response = await _client.GetAsync("/todos/1");
             response.EnsureSuccessStatusCode();

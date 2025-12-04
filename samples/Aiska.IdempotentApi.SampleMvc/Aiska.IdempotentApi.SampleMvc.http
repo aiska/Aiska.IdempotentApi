@@ -1,0 +1,6 @@
+@Aiska.IdempotentApi.SampleMvc_HostAddress = http://localhost:5069
+
+GET {{Aiska.IdempotentApi.SampleMvc_HostAddress}}/weatherforecast/
+Accept: application/json
+
+###

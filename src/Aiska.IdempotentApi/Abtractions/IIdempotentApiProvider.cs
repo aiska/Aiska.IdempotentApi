@@ -1,11 +1,15 @@
-﻿using Microsoft.AspNetCore.Http;
+﻿using Aiska.IdempotentApi.Models;
+using Microsoft.AspNetCore.Http;
 
 namespace Aiska.IdempotentApi.Abtractions
 {
-    public interface IIdempotentApiProvider
+    internal interface IIdempotentApiProvider
     {
         Task CacheAsync(string cacheKey, object? result);
-        IdempotentErrorMessage? GetError(IdempotentEnumResult errorResult);
-        ValueTask<(IdempotentEnumResult, string, object?)> ProcessIdempotentAsync(EndpointFilterInvocationContext context);
+        Task<IdempotentEnumResult> ProcessIdempotentAsync(IdempotentRequest request);
+        IdempotentErrorMessage MissingHeaderError();
+        IdempotentErrorMessage RetriedError();
+        IdempotentErrorMessage ReuseError();
+        bool IsValidIdempotent(HttpRequest request);
     }
 }
