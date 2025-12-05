@@ -127,7 +127,7 @@ namespace Aiska.IdempotentApi.Services
                         string json = JsonSerializer.Serialize(parameter.Value, parameter.Type, jsonOptions.Value.SerializerOptions);
                         if (parameter.Excludes.Length > 0)
                         {
-                            JsonObject? jsonObject = JsonObject.Parse(json)?.AsObject();
+                            JsonObject? jsonObject = JsonNode.Parse(json)?.AsObject();
                             if (jsonObject != null)
                             {
                                 foreach (var item in parameter.Excludes)

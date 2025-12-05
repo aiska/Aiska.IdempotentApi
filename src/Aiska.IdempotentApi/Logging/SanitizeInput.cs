@@ -13,7 +13,6 @@ namespace Aiska.IdempotentApi.Logging
 
             string sanitized = input.Replace("\r", "").Replace("\n", "");
             sanitized = AsciiOnly().Replace(sanitized, "");
-
             return $"[{sanitized}]";
         }
 

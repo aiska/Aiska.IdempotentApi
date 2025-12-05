@@ -1,5 +1,6 @@
 ﻿using Aiska.IdempotentApi.Abtractions;
 using Aiska.IdempotentApi.Configuration;
+using Aiska.IdempotentApi.Serialization;
 using Aiska.IdempotentApi.Services;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
@@ -11,12 +12,10 @@ namespace Aiska.IdempotentApi.Extensions.DependencyInjection
         private static IServiceCollection IdempotentApiBase(this IServiceCollection services)
         {
             ArgumentNullException.ThrowIfNull(services);
-
             services.ConfigureHttpJsonOptions(options =>
             {
                 options.SerializerOptions.TypeInfoResolverChain.Add(IdempotentJsonSerializerContext.Default);
             });
-
             services.AddOptions<IdempotentApiOptions>();
             services.AddScoped<IIdempotentApiProvider, IdempotentApiProvider>();
 

@@ -15,7 +15,6 @@ namespace Aiska.IdempotentApi.Extensions
         {
             Type[] types = [];
             ObjectFactory<IdempotentApiEndpointFilter> filterFactory = ActivatorUtilities.CreateFactory<IdempotentApiEndpointFilter>(types);
-
             builder.AddEndpointFilterFactory((routeHandlerContext, next) =>
             {
 
@@ -42,6 +41,7 @@ namespace Aiska.IdempotentApi.Extensions
                     {
                         endpointParam.Parameters[i].Value = context.Arguments[i];
                     }
+
                     var filter = filterFactory.Invoke(context.HttpContext.RequestServices, invokeArguments);
                     return await filter.InvokeAsync(context, next, endpointParam);
                 };
