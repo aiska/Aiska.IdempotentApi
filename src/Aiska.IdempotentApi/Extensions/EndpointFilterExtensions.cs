@@ -18,32 +18,33 @@ namespace Aiska.IdempotentApi.Extensions
             builder.AddEndpointFilterFactory((routeHandlerContext, next) =>
             {
 
-                IdempotentRequest endpointParam = new();
-                var parameters = routeHandlerContext.MethodInfo.GetParameters();
-                foreach (var parameter in parameters)
+                ParameterInfo[] parameters = routeHandlerContext.MethodInfo.GetParameters();
+
+                IdempotentParameter idempotentParameter = new()
                 {
-                    if (parameter?.Name != null)
-                    {
-                        IdempotentExcludeAttribute attribute = parameter.GetCustomAttribute<IdempotentExcludeAttribute>() ?? new IdempotentExcludeAttribute();
-                        endpointParam.Parameters.Add(new IdempotentParamRequest
+                    Attributes = [.. parameters
+                        .Where(parameter => parameter.Name != null)
+                        .Select(parameter =>
                         {
-                            Name = parameter.Name,
-                            Type = parameter.ParameterType,
-                            Excludes = attribute.Exclude
-                        });
-                    }
-                }
+                            IdempotentExcludeAttribute attribute = parameter.GetCustomAttribute<IdempotentExcludeAttribute>() ?? new IdempotentExcludeAttribute();
+                            IdempotentIgnoreAttribute? Ignore = parameter.GetCustomAttribute<IdempotentIgnoreAttribute>();
+
+                            return new IdempotentParamRequest
+                            {
+                                Name = parameter.Name!, // Use null-forgiving operator if you are confident it's not null due to the .Where check
+                                Type = parameter.ParameterType,
+                                Excludes = attribute.Exclude,
+                                Ignore = Ignore is not null
+                            };
+                        })] // Convert the resulting enumerable directly to an array
+                };
 
                 object[] invokeArguments = [routeHandlerContext];
                 return async context =>
                 {
-                    for (int i = 0; i < context.Arguments.Count; i++)
-                    {
-                        endpointParam.Parameters[i].Value = context.Arguments[i];
-                    }
-
-                    var filter = filterFactory.Invoke(context.HttpContext.RequestServices, invokeArguments);
-                    return await filter.InvokeAsync(context, next, endpointParam);
+                    idempotentParameter.ContentType = context.HttpContext.Request.ContentType;
+                    IdempotentApiEndpointFilter filter = filterFactory.Invoke(context.HttpContext.RequestServices, invokeArguments);
+                    return await filter.InvokeAsync(context, next, idempotentParameter).ConfigureAwait(false);
                 };
             });
             return builder;

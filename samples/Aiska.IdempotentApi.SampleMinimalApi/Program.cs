@@ -17,7 +17,7 @@ builder.Services.ConfigureHttpJsonOptions(options =>
 // Learn more about configuring OpenAPI at https://aka.ms/aspnet/openapi
 builder.Services.AddOpenApi();
 
-builder.Services.AddIdempotentApi(builder.Configuration);
+builder.Services.AddIdempotentApiHybridRedis(builder.Configuration);
 
 var app = builder.Build();
 
@@ -56,7 +56,11 @@ todosApi.MapPost("/", async ([IdempotentExclude("IsComplete", "DueBy")] Todo tod
     .WithName("CreateTodo")
     .AddIdempotentFilter();
 
-todosApi.MapPost("/form", async ([FromForm] int id, [FromForm] string Title, [FromForm] DateOnly? DueDate, [FromForm] bool? IsComplete) =>
+todosApi.MapPost("/form", async (
+    [FromForm] int id, 
+    [FromForm] string Title, 
+    [FromForm][IdempotentIgnore] DateOnly? DueDate, 
+    [FromForm][IdempotentIgnore] bool? IsComplete) =>
 {
     var todo = new Todo(id, Title, DueDate);
     //simulate creation
@@ -71,4 +75,4 @@ app.Run();
 
 
 [JsonSerializable(typeof(Todo[]))]
-internal partial class AppJsonSerializerContext : JsonSerializerContext { }
+partial class AppJsonSerializerContext : JsonSerializerContext { }

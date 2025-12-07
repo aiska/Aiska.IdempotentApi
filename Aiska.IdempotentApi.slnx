@@ -4,5 +4,4 @@
   <Project Path="src/Aiska.IdempotentApi.Hybrid/Aiska.IdempotentApi.Hybrid.csproj" Id="d6f7a073-010c-42a4-a9b4-6eb8715619f9" />
   <Project Path="src/Aiska.IdempotentApi/Aiska.IdempotentApi.csproj" />
   <Project Path="tests/Aiska.IdempotentApi.Test/Aiska.IdempotentApi.Tests/Aiska.IdempotentApi.Tests.csproj" Id="57bda12b-74d2-4043-806f-5e1f54a233f2" />
-  <Project Path="tests/AIska.IdempotentMvcTest/AIska.IdempotentMvcTest.csproj" Id="3640e132-ec79-41c3-a852-46462350d25d" />
 </Solution>

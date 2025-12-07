@@ -1,15 +1,20 @@
-﻿namespace Aiska.IdempotentApi.Tests
+﻿extern alias SampleMinimalApi;
+
+using Microsoft.AspNetCore.Http.HttpResults;
+using System.Net;
+
+namespace Aiska.IdempotentApi.Tests
 {
     [TestClass]
     public class IdempotentApiTest
     {
         private HttpClient? _client;
-        private CustomWebApplicationFactory<Program>? _factory;
+        private CustomWebApplicationFactory<SampleMinimalApi.Program>? _factory;
 
         [TestInitialize]
         public void Setup()
         {
-            _factory = new CustomWebApplicationFactory<Program>();
+            _factory = new CustomWebApplicationFactory<SampleMinimalApi.Program>();
             _client = _factory.CreateClient();
         }
 
@@ -46,6 +51,18 @@
             // Assert
             var responseString = await response.Content.ReadAsStringAsync();
             Assert.IsNotNull(responseString);
+        }
+
+        [TestMethod]
+        public async Task AppDefaultGetWithParamTestNotFound()
+        {
+            ArgumentNullException.ThrowIfNull(_client);
+
+            // Act
+            var response = await _client.GetAsync("/todos/10");
+
+            // Assert
+            Assert.AreEqual(HttpStatusCode.NotFound, response.StatusCode);
         }
     }
 }

@@ -1,12 +1,12 @@
 ﻿namespace Aiska.IdempotentApi.Attributes
 {
-    [AttributeUsage(AttributeTargets.Parameter, AllowMultiple = false, Inherited = false)]
+    [AttributeUsage(AttributeTargets.Parameter | AttributeTargets.Property, AllowMultiple = false, Inherited = false)]
     public class IdempotentExcludeAttribute : Attribute
     {
         public IdempotentExcludeAttribute(params string[] excludes)
         {
-            var items = new List<string>(excludes.Length);
-            foreach (var item in excludes)
+            List<string> items = new(excludes.Length);
+            foreach (string item in excludes)
             {
                 items.AddRange(SplitString(item));
             }
@@ -15,7 +15,9 @@
         }
 
         private static string[] SplitString(string original)
-               => original?.Split(',', StringSplitOptions.TrimEntries | StringSplitOptions.RemoveEmptyEntries) ?? [];
+        {
+            return original?.Split(',', StringSplitOptions.TrimEntries | StringSplitOptions.RemoveEmptyEntries) ?? [];
+        }
 
         public string[] Exclude { get; }
     }

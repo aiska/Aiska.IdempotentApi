@@ -1,5 +1,6 @@
 using Aiska.IdempotentApi.Attributes;
 using Aiska.IdempotentApi.Filters;
+using Microsoft.AspNetCore.Http.Extensions;
 using Microsoft.AspNetCore.Http.HttpResults;
 using Microsoft.AspNetCore.Mvc;
 

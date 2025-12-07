@@ -11,10 +11,11 @@
   <ItemGroup>
     <PackageReference Include="Microsoft.AspNetCore.OpenApi" Version="10.0.0" />
     <PackageReference Include="Microsoft.EntityFrameworkCore" Version="10.0.0" />
+    <PackageReference Include="Microsoft.Extensions.Caching.StackExchangeRedis" Version="10.0.0" />
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\..\src\Aiska.IdempotentApi\Aiska.IdempotentApi.csproj" />
+    <ProjectReference Include="..\..\src\Aiska.IdempotentApi.Hybrid\Aiska.IdempotentApi.Hybrid.csproj" />
   </ItemGroup>
   
 </Project>

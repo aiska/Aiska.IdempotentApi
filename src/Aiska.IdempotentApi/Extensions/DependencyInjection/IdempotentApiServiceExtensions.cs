@@ -1,7 +1,8 @@
 ﻿using Aiska.IdempotentApi.Abtractions;
-using Aiska.IdempotentApi.Configuration;
+using Aiska.IdempotentApi.Options;
 using Aiska.IdempotentApi.Serialization;
 using Aiska.IdempotentApi.Services;
+using Aiska.IdempotentApi.Store;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 
@@ -26,7 +27,7 @@ namespace Aiska.IdempotentApi.Extensions.DependencyInjection
         {
             ArgumentNullException.ThrowIfNull(config);
 
-            var section = config.GetSection("IdempotentApi");
+            IConfigurationSection section = config.GetSection("IdempotentApi");
             services.Configure<IdempotentApiOptions>(section);
             return services;
         }
@@ -62,7 +63,7 @@ namespace Aiska.IdempotentApi.Extensions.DependencyInjection
             return services;
         }
 
-        public static IServiceCollection AddIdempotentApi<TCache>(this IServiceCollection services)
+        internal static IServiceCollection AddIdempotentApi<TCache>(this IServiceCollection services)
             where TCache : class, IIdempotentCache
         {
             ArgumentNullException.ThrowIfNull(services);

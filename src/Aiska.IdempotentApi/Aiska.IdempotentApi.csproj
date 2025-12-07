@@ -10,6 +10,7 @@
 		<Description>A .NET library for creating idempotent APIs, ensuring that requests are processed only once, even if received multiple times.</Description>
 		<RepositoryUrl>https://github.com/aiska/Aiska.IdempotentApi</RepositoryUrl>
 		<PackageReadmeFile>README.md</PackageReadmeFile>
+		<PackageLicenseFile>LICENSE.md</PackageLicenseFile>
 		<PackageTags>Idempotency</PackageTags>
 		<IncludeSymbols>True</IncludeSymbols>
 		<AnalysisLevel>latest-recommended</AnalysisLevel>
@@ -18,11 +19,15 @@
 		<PackageProjectUrl>https://github.com/aiska/Aiska.IdempotentApi</PackageProjectUrl>
 		<Copyright>2025 © Aiska Hendra</Copyright>
 		<PackageRequireLicenseAcceptance>False</PackageRequireLicenseAcceptance>
-		<PackageLicenseFile>LICENSE.md</PackageLicenseFile>
-		<Version>1.0.5</Version>
+		<Version>1.0.6</Version>
 		<IsPackable>true</IsPackable>
 		<LangVersion>14.0</LangVersion>
 		<GenerateErrorForMissingTargetingPacks>false</GenerateErrorForMissingTargetingPacks>
+		<Deterministic>true</Deterministic>
+	</PropertyGroup>
+
+	<PropertyGroup Condition="'$(TF_BUILD)' == 'true'">
+		<ContinuousIntegrationBuild>true</ContinuousIntegrationBuild>
 	</PropertyGroup>
 	
 	<PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">

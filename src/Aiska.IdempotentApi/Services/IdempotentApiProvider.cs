@@ -1,80 +1,93 @@
 ﻿using Aiska.IdempotentApi.Abtractions;
-using Aiska.IdempotentApi.Configuration;
-using Aiska.IdempotentApi.Extensions;
 using Aiska.IdempotentApi.Logging;
 using Aiska.IdempotentApi.Models;
+using Aiska.IdempotentApi.Options;
 using Aiska.IdempotentApi.Tools;
 using Microsoft.AspNetCore.Http;
-using Microsoft.AspNetCore.Http.Json;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
-using System.Net.Mime;
 using System.Security.Cryptography;
 using System.Text;
-using System.Text.Json;
-using System.Text.Json.Nodes;
 
 namespace Aiska.IdempotentApi.Services
 {
     internal sealed class IdempotentApiProvider(IIdempotentCache cache,
             IOptions<IdempotentApiOptions> options,
-            ILogger<IdempotentApiProvider> logger,
-            IOptions<JsonOptions> jsonOptions) : IIdempotentApiProvider
+            ILogger<IdempotentApiProvider> logger) : IIdempotentApiProvider
     {
 
-        async Task<IdempotentEnumResult> IIdempotentApiProvider.ProcessIdempotentAsync(IdempotentRequest request)
+        async Task<IdempotentResponse> IIdempotentApiProvider.ProcessIdempotentAsync(IdempotentRequest request)
         {
             ArgumentNullException.ThrowIfNull(request);
 
-            if (request.IdempotentHeader == string.Empty)
+            if (request.IdempotentHeaderKey == string.Empty)
             {
                 logger.MissingIdempotencyKeyHeader();
-                return IdempotentEnumResult.HeaderMissing;
+                return new()
+                {
+                    Type = IdempotentEnumResult.HeaderMissing
+                };
             }
 
-            request.RequestData = await GetIdempotentContent(request);
-            request.HashValue = GetHashContentSHA256(request.IdempotentHeader, request.RequestData);
+            string hashValue = GetHashContentSHA256(request.IdempotentHeaderKey, request.RequestData);
 
-            if (!cache.TryGetValue(request.IdempotentHeader, out IdempotentData? cacheData))
+            IdempotentCacheData cacheData;
+            using (AccessLock accessLock = await AccessLock.CreateAsync(request.IdempotentHeaderKey))
             {
-                using var accessLock = await AccessLock.CreateAsync(request.IdempotentHeader);
-                if (!cache.TryGetValue(request.IdempotentHeader, out cacheData))
+                cacheData = await cache.GetOrCreateAsync(request.IdempotentHeaderKey);
+                if (cacheData.HashValue == null)
                 {
-                    if (logger.IsEnabled(LogLevel.Information))
+                    logger.IdempotencyKeyCacheMiss(request.IdempotentHeaderKey.SanitizeInput());
+                    cacheData.HashValue = hashValue;
+                    await cache.SetCacheAsync(request.IdempotentHeaderKey, cacheData);
+                    return new()
                     {
-                        logger.IdempotencyKeyCacheMiss(request.IdempotentHeader.SanitizeInput());
-                    }
-                    cacheData = new IdempotentData
-                    {
-                        HashValue = GetHashContentSHA256(request.IdempotentHeader, request.RequestData)
+                        HashValue = hashValue,
+                        Type = IdempotentEnumResult.CacheMiss
                     };
-                    cache.CreateEntry(request.IdempotentHeader);
-                    cache.SetCache(request.IdempotentHeader, cacheData);
-                    return IdempotentEnumResult.Success;
                 }
             }
-            request.CacheData = cacheData;
 
 
-            if (request.CacheData is not null && request.CacheData?.HashValue != request.HashValue)
+            if (cacheData.HashValue is not null)
             {
-                logger.IdempotencyKeyReuse(request.IdempotentHeader.SanitizeInput());
-                return IdempotentEnumResult.Reuse;
-            }
-            else if (request?.CacheData?.ResponseCache is null)
-            {
-                if (logger.IsEnabled(LogLevel.Information))
+                if (hashValue.Equals(cacheData.HashValue, StringComparison.Ordinal))
                 {
-                    logger.IdempotencyKeyRetried(request?.IdempotentHeader.SanitizeInput() ?? string.Empty);
+                    if (cacheData.IsCompleted)
+                    {
+                        logger.IdempotencyKeyCacheHit(request.IdempotentHeaderKey.SanitizeInput());
+                        return new()
+                        {
+                            HashValue = hashValue,
+                            statusCode = cacheData.StatusCode,
+                            ResponseCache = cacheData.ResponseCache,
+                            Type = IdempotentEnumResult.CacheHit
+                        };
+                    }
+                    else
+                    {
+                        logger.IdempotencyKeyRetried(request.IdempotentHeaderKey.SanitizeInput());
+                        return new()
+                        {
+                            Type = IdempotentEnumResult.Retried
+                        };
+                    }
                 }
-                return IdempotentEnumResult.Retried;
+                else
+                {
+                    logger.IdempotencyKeyReuse(request.IdempotentHeaderKey.SanitizeInput());
+                    return new()
+                    {
+                        ResponseCache = cacheData.ResponseCache,
+                        Type = IdempotentEnumResult.Reuse
+                    };
+                }
+
             }
-            else if (request.CacheData?.ResponseCache is not null)
+            return new()
             {
-                logger.IdempotencyKeyCacheHit(request.IdempotentHeader.SanitizeInput());
-                return IdempotentEnumResult.Idempotent;
-            }
-            return IdempotentEnumResult.Continue;
+                Type = IdempotentEnumResult.Continue
+            };
         }
 
         private string GetHashContentSHA256(string IdempotencyKey, string requestData)
@@ -90,7 +103,7 @@ namespace Aiska.IdempotentApi.Services
             Span<byte> hashBytes = stackalloc byte[SHA256.HashSizeInBytes]; // HashSizeInBytes is 32
 
             // Calculate the exact size needed for the Base64 output string (no padding required)
-            int base64CharCount = ((hashBytes.Length + 2) / 3) * 4;
+            int base64CharCount = (hashBytes.Length + 2) / 3 * 4;
             Span<char> base64Chars = stackalloc char[base64CharCount];
 
             // === Process data without creating intermediate strings on the heap ===
@@ -99,7 +112,7 @@ namespace Aiska.IdempotentApi.Services
             int writtenBytes = Encoding.UTF8.GetBytes(input, inputBytes);
 
             // 2. Slice the input span to the actual length written
-            ReadOnlySpan<byte> actualInputSpan = inputBytes.Slice(0, writtenBytes);
+            ReadOnlySpan<byte> actualInputSpan = inputBytes[..writtenBytes];
 
             // 3. Compute the hash directly into the stack-allocated hashBytes span
             SHA256.HashData(actualInputSpan, hashBytes);
@@ -108,7 +121,7 @@ namespace Aiska.IdempotentApi.Services
             Convert.TryToBase64Chars(hashBytes, base64Chars, out _);
 
             // 5. Create the final result string *once* from the stack-allocated char span
-            string finalHashString = new string(base64Chars);
+            string finalHashString = new(base64Chars);
 
             // Optional: Output the result if running in a console app
             // Console.WriteLine($"High Performance SHA256 Hash (Base64): {finalHashString}");
@@ -116,67 +129,16 @@ namespace Aiska.IdempotentApi.Services
             return finalHashString;
         }
 
-        private async ValueTask<string> GetIdempotentContent(IdempotentRequest request)
-        {
-            if (request != null && request.Parameters.Count > 0)
-            {
-                if (request.ContentType.StartsWith(MediaTypeNames.Application.Json, StringComparison.OrdinalIgnoreCase))
-                {
-                    foreach (var parameter in request.Parameters)
-                    {
-                        string json = JsonSerializer.Serialize(parameter.Value, parameter.Type, jsonOptions.Value.SerializerOptions);
-                        if (parameter.Excludes.Length > 0)
-                        {
-                            JsonObject? jsonObject = JsonNode.Parse(json)?.AsObject();
-                            if (jsonObject != null)
-                            {
-                                foreach (var item in parameter.Excludes)
-                                {
-                                    jsonObject.Remove(item);
-                                    string lower = item.FirstCharToLower();
-                                    jsonObject.Remove(lower);
-                                }
-                                return jsonObject.ToJsonString();
-                            }
-                        }
-                        return json;
-                    }
-                }
-                else if (request.ContentType.StartsWith(MediaTypeNames.Application.FormUrlEncoded, StringComparison.OrdinalIgnoreCase))
-                {
-                    Dictionary<string, object?> data = [];
-                    foreach (var item in request.Parameters)
-                    {
-                        if (item.Value != null && !item.Excludes.Contains(item.Name, StringComparer.OrdinalIgnoreCase))
-                        {
-                            data.Add(item.Name, item.Value);
-                        }
-                    }
-                    return JsonSerializer.Serialize(data, jsonOptions.Value.SerializerOptions);
-                }
-            }
-            return string.Empty;
-        }
-
         bool IIdempotentApiProvider.IsValidIdempotent(HttpRequest request)
         {
             ArgumentNullException.ThrowIfNull(cache);
 
-            if (request.Method != HttpMethods.Post && request.Method != HttpMethods.Patch)
-                return false;
-            return true;
+            return request.Method == HttpMethods.Post || request.Method == HttpMethods.Patch;
         }
 
-        async Task IIdempotentApiProvider.CacheAsync(string cacheKey, object? result)
+        async Task IIdempotentApiProvider.SetCacheAsync(string key, IdempotentCacheData data)
         {
-            if (cache.TryGetValue(cacheKey, out IdempotentData? cacheData))
-            {
-                if (cacheData is not null)
-                {
-                    cacheData.ResponseCache = result;
-                    cache.SetCache(cacheKey, cacheData);
-                }
-            }
+            await cache.SetCacheAsync(key, data);
         }
 
         IdempotentErrorMessage IIdempotentApiProvider.MissingHeaderError()

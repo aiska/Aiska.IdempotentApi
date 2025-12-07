@@ -17,7 +17,7 @@
             charSpan[0] = char.ToLowerInvariant(input[0]);
 
             // Copy the rest of the string into the span
-            input.AsSpan(1).CopyTo(charSpan.Slice(1));
+            input.AsSpan(1).CopyTo(charSpan[1..]);
 
             // Create a new string from the modified char array
             return new string(charArray);

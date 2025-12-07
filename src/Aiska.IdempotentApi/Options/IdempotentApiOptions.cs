@@ -1,7 +1,6 @@
 ﻿using Aiska.IdempotentApi.Extensions;
-using Aiska.IdempotentApi.Options;
 
-namespace Aiska.IdempotentApi.Configuration
+namespace Aiska.IdempotentApi.Options
 {
     public sealed class IdempotentApiOptions
     {
@@ -12,11 +11,15 @@ namespace Aiska.IdempotentApi.Configuration
 
         public double ExpirationFromMinutes { get; set; } = DefaultOptions.ExpirationFromMinutes;
 
+        public string? RedisConnection { get; set; }
+
         public ErrorMessage Errors { get; set; } = new();
     }
 
     public class ErrorMessage
     {
+        public const string Errors = "Errors";
+
         public string MissingHeaderType { get; set; } = "";
         public string MissingHeaderTitle { get; set; } = IdempotentError.MissingHeader;
         public string MissingHeaderDetail { get; set; } = IdempotentError.MissingHeaderDetail;

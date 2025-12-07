@@ -1,6 +1,12 @@
-﻿using System.Net;
+﻿extern alias SampleMinimalApi;
+
+using Bogus;
+using SampleMinimalApi::Aiska.IdempotentApi.SampleMinimalApi;
+using System.Net;
 using System.Net.Mime;
 using System.Text;
+using System.Text.Json;
+using static Microsoft.ApplicationInsights.MetricDimensionNames.TelemetryContext;
 
 namespace Aiska.IdempotentApi.Tests
 {
@@ -8,12 +14,44 @@ namespace Aiska.IdempotentApi.Tests
     public class IdempotentApiJsonTest
     {
         private HttpClient? _client;
-        private CustomWebApplicationFactory<Program>? _factory;
+        private CustomWebApplicationFactory<SampleMinimalApi.Program>? _factory;
+
+        private bool isGenerated;
+        private Todo[] todos = [];
+
+
+        public class Todo
+        {
+            public int Id { get; set; }
+            public string? Title { get; set; }
+            public DateOnly? DueBy { get; set; }
+            public bool IsComplete { get; set; }
+        }
+
+        public Todo[] SampleData
+        {
+            get
+            {
+                if (!isGenerated)
+                {
+                    isGenerated = true;
+                    var userFaker = new Faker<Todo>()
+                        .RuleFor(u => u.IsComplete, f => true)
+                        .RuleFor(u => u.DueBy, f => f.Date.FutureDateOnly())
+                        .RuleFor(u => u.Title, f => f.Name.FullName())
+                        .RuleFor(u => u.Id, f => f.UniqueIndex);
+
+                    todos = userFaker.Generate(100).ToArray();
+                }
+
+                return todos;
+            }
+        }
 
         [TestInitialize]
         public void Setup()
         {
-            _factory = new CustomWebApplicationFactory<Program>();
+            _factory = new CustomWebApplicationFactory<SampleMinimalApi.Program>();
             _client = _factory.CreateClient();
         }
 
@@ -95,33 +133,29 @@ namespace Aiska.IdempotentApi.Tests
         {
             ArgumentNullException.ThrowIfNull(_client);
 
+            int count = 2;
+
             var key = Guid.NewGuid().ToString();
 
-            string jsonPayload = "{\"id\": 1, \"title\": \"Buy Milk\"}";
-            string jsonPayload2 = "{\"id\": 2, \"title\": \"Buy Milk\"}";
+            Task<HttpResponseMessage>[] tasks = new Task<HttpResponseMessage>[count];
 
-            HttpContent httpContent = new StringContent(
-                content: jsonPayload,
-                encoding: Encoding.UTF8,
-                mediaType: MediaTypeNames.Application.Json
-            );
-            httpContent.Headers.Add("Idempotency-Key", key);
+            for (int i = 0; i < count; i++)
+            {
+                HttpContent httpContent = new StringContent(
+                    content: JsonSerializer.Serialize(SampleData[i]),
+                    encoding: Encoding.UTF8,
+                    mediaType: MediaTypeNames.Application.Json
+                );
+                httpContent.Headers.Add("Idempotency-Key", key);
+                tasks[i] = _client.PostAsync("/todos", httpContent);
+            }
 
-            var task = _client.PostAsync("/todos", httpContent);
+            Task.WaitAll(tasks, TestContext.CancellationToken);
 
-            await Task.Delay(1000);
-
-
-            HttpContent httpContent2 = new StringContent(
-                content: jsonPayload2,
-                encoding: Encoding.UTF8,
-                mediaType: MediaTypeNames.Application.Json
-            );
-            httpContent2.Headers.Add("Idempotency-Key", key);
-
-            var response = await _client.PostAsync("/todos", httpContent2);
-
-            Assert.AreEqual(HttpStatusCode.UnprocessableEntity, response.StatusCode);
+            int failCount = tasks.Where(t => t.Result.StatusCode == HttpStatusCode.UnprocessableEntity).Count();
+            Assert.AreEqual(count-1, failCount);
+            int successCount = tasks.Where(t => t.Result.StatusCode == HttpStatusCode.Created).Count();
+            Assert.AreEqual(1, successCount);
         }
 
 

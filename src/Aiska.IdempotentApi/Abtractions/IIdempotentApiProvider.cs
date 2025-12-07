@@ -5,8 +5,8 @@ namespace Aiska.IdempotentApi.Abtractions
 {
     internal interface IIdempotentApiProvider
     {
-        Task CacheAsync(string cacheKey, object? result);
-        Task<IdempotentEnumResult> ProcessIdempotentAsync(IdempotentRequest request);
+        Task SetCacheAsync(string cacheKey, IdempotentCacheData data);
+        Task<IdempotentResponse> ProcessIdempotentAsync(IdempotentRequest request);
         IdempotentErrorMessage MissingHeaderError();
         IdempotentErrorMessage RetriedError();
         IdempotentErrorMessage ReuseError();

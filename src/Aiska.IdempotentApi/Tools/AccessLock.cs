@@ -8,7 +8,7 @@ namespace Aiska.IdempotentApi.Tools
 
         public static async Task<AccessLock> CreateAsync(string value)
         {
-            var disposeTracker = lockValueMapper.AddOrUpdate(value, (_) => new LockDisposeTracker(), (_, disposeTracker) => disposeTracker with
+            LockDisposeTracker disposeTracker = lockValueMapper.AddOrUpdate(value, (_) => new LockDisposeTracker(), (_, disposeTracker) => disposeTracker with
             {
                 Count = disposeTracker.Count + 1
             });
@@ -20,11 +20,11 @@ namespace Aiska.IdempotentApi.Tools
         {
             while (true)
             {
-                var minlockValueMapperiLock = lockValueMapper[value];
-                var updatedLock = minlockValueMapperiLock with { Count = minlockValueMapperiLock.Count - 1 };
+                LockDisposeTracker minlockValueMapperiLock = lockValueMapper[value];
+                LockDisposeTracker updatedLock = minlockValueMapperiLock with { Count = minlockValueMapperiLock.Count - 1 };
                 if (lockValueMapper.TryUpdate(value, updatedLock, minlockValueMapperiLock))
                 {
-                    if (updatedLock.Count == 0 && lockValueMapper.TryRemove(value, out var removedLock))
+                    if (updatedLock.Count == 0 && lockValueMapper.TryRemove(value, out LockDisposeTracker? removedLock))
                     {
                         removedLock.Semaphore.Value.Release();
                         removedLock.Semaphore.Value.Dispose();

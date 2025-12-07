@@ -2,11 +2,11 @@
 {
     public enum IdempotentEnumResult
     {
-        Success,
+        CacheMiss,
         HeaderMissing,
         Reuse,
         Retried,
-        Idempotent,
+        CacheHit,
         Continue
     }
 }

@@ -4,15 +4,64 @@
 		<TargetFramework>net10.0</TargetFramework>
 		<ImplicitUsings>enable</ImplicitUsings>
 		<Nullable>enable</Nullable>
+		<RootNamespace>Aiska.IdempotentApi</RootNamespace>
+		<LangVersion>14.0</LangVersion>
+		<Version>1.0.6</Version>
+		<IsPackable>true</IsPackable>
+		<GeneratePackageOnBuild>True</GeneratePackageOnBuild>
+		<Title>A .NET library for creating idempotent APIs with Hybrid Cache</Title>
+		<Authors>Aiska Hendra</Authors>
+		<Description>A .NET library for creating idempotent APIs using Hybrid Cache, ensuring that requests are processed only once, even if received multiple times.</Description>
+		<RepositoryUrl>https://github.com/aiska/Aiska.IdempotentApi</RepositoryUrl>
+		<PackageReadmeFile>README.md</PackageReadmeFile>
+		<PackageLicenseFile>LICENSE.md</PackageLicenseFile>
+		<PackageTags>Idempotency</PackageTags>
+		<IncludeSymbols>True</IncludeSymbols>
+		<AnalysisLevel>latest-recommended</AnalysisLevel>
+		<SymbolPackageFormat>snupkg</SymbolPackageFormat>
+		<PackAsTool>False</PackAsTool>
+		<PackageProjectUrl>https://github.com/aiska/Aiska.IdempotentApi</PackageProjectUrl>
+		<Copyright>2025 © Aiska Hendra</Copyright>
+		<PackageRequireLicenseAcceptance>False</PackageRequireLicenseAcceptance>
+		<Version>1.0.6</Version>
+		<IsPackable>true</IsPackable>
+		<GenerateErrorForMissingTargetingPacks>true</GenerateErrorForMissingTargetingPacks>
+		<Deterministic>true</Deterministic>
 	</PropertyGroup>
+
+	<PropertyGroup Condition="'$(TF_BUILD)' == 'true'">
+		<ContinuousIntegrationBuild>true</ContinuousIntegrationBuild>
+	</PropertyGroup>
+
+	<PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
+		<Optimize>False</Optimize>
+	</PropertyGroup>
+
+	<PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|AnyCPU'">
+		<Optimize>true</Optimize>
+	</PropertyGroup>
+
+	<ItemGroup>
+	  <ProjectReference Include="..\Aiska.IdempotentApi\Aiska.IdempotentApi.csproj" />
+	</ItemGroup>
+
+	<ItemGroup>
+	  <None Include="..\..\LICENSE.md">
+	    <Pack>True</Pack>
+	    <PackagePath>\</PackagePath>
+	  </None>
+	  <None Include="..\..\README.md">
+	    <Pack>True</Pack>
+	    <PackagePath>\</PackagePath>
+	  </None>
+	</ItemGroup>
 
 	<ItemGroup>
 		<FrameworkReference Include="Microsoft.AspNetCore.App" />
 		<PackageReference Include="Microsoft.Extensions.Caching.Hybrid" Version="10.0.0" />
-	</ItemGroup>
-
-	<ItemGroup>
-	  <ProjectReference Include="..\Aiska.IdempotentApi\Aiska.IdempotentApi.csproj" />
+		<PackageReference Include="Microsoft.Extensions.Caching.Postgres" Version="1.1.0" />
+		<PackageReference Include="Microsoft.Extensions.Caching.SqlServer" Version="10.0.0" />
+		<PackageReference Include="Microsoft.Extensions.Caching.StackExchangeRedis" Version="10.0.0" />
 	</ItemGroup>
 
 </Project>

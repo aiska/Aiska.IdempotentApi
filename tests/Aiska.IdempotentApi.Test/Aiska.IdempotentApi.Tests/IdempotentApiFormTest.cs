@@ -1,4 +1,6 @@
-﻿using System.Net;
+﻿extern alias SampleMinimalApi;
+
+using System.Net;
 
 namespace Aiska.IdempotentApi.Tests
 {
@@ -6,12 +8,12 @@ namespace Aiska.IdempotentApi.Tests
     public class IdempotentApiFormTest
     {
         private HttpClient? _client;
-        private CustomWebApplicationFactory<Program>? _factory;
+        private CustomWebApplicationFactory<SampleMinimalApi.Program>? _factory;
 
         [TestInitialize]
         public void Setup()
         {
-            _factory = new CustomWebApplicationFactory<Program>();
+            _factory = new CustomWebApplicationFactory<SampleMinimalApi.Program>();
             _client = _factory.CreateClient();
         }
 
@@ -125,6 +127,8 @@ namespace Aiska.IdempotentApi.Tests
         [TestMethod]
         public async Task AppIdempotentApiFormCachedTest()
         {
+            ArgumentNullException.ThrowIfNull(_client);
+
             var key = Guid.NewGuid().ToString();
 
             var formData = new Dictionary<string, string>{
@@ -135,14 +139,10 @@ namespace Aiska.IdempotentApi.Tests
             HttpContent httpContent = new FormUrlEncodedContent(formData);
             httpContent.Headers.Add("Idempotency-Key", key);
 
-            if (_client is not null)
-            {
-                var response = await _client.PostAsync("/todos/form", httpContent);
-                response = await _client.PostAsync("/todos/form", httpContent);
+            var response = await _client.PostAsync("/todos/form", httpContent);
+            response = await _client.PostAsync("/todos/form", httpContent);
 
-                Assert.AreEqual(HttpStatusCode.Created, response.StatusCode);
-
-            }
+            Assert.AreEqual(HttpStatusCode.Created, response.StatusCode);
         }
 
         public TestContext TestContext { get; set; }

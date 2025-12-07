@@ -12,11 +12,13 @@
 	</PropertyGroup>
 
 	<ItemGroup>
+	  <PackageReference Include="Bogus" Version="35.6.5" />
 	  <PackageReference Include="Microsoft.AspNetCore.Mvc.Testing" Version="10.0.0" />
 	</ItemGroup>
 	
 	<ItemGroup>
-		<ProjectReference Include="..\..\..\samples\Aiska.IdempotentApi.SampleMinimalApi\Aiska.IdempotentApi.SampleMinimalApi.csproj" />
+		<ProjectReference Include="..\..\..\samples\Aiska.IdempotentApi.SampleMinimalApi\Aiska.IdempotentApi.SampleMinimalApi.csproj" Aliases="SampleMinimalApi" />
+		<ProjectReference Include="..\..\..\samples\Aiska.IdempotentApi.SampleMvc\Aiska.IdempotentApi.SampleMvc.csproj" Aliases="SampleMvc" />
 	</ItemGroup>
 	
 	<ItemGroup>

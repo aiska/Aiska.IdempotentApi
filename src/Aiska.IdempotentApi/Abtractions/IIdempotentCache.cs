@@ -1,11 +1,11 @@
-﻿using Microsoft.Extensions.Caching.Memory;
+﻿using Aiska.IdempotentApi.Models;
 
 namespace Aiska.IdempotentApi.Abtractions
 {
     public interface IIdempotentCache
     {
-        ICacheEntry CreateEntry(string key);
-        bool TryGetValue<T>(string key, out T value);
-        void SetCache(string key, object? value);
+        ValueTask<IdempotentCacheData> GetOrCreateAsync(string key);
+        ValueTask SetCacheAsync(string key, IdempotentCacheData value);
+
     }
 }
