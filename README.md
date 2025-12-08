@@ -46,7 +46,7 @@ The library is built using C# and targets .NET. It's designed to be lightweight 
 
 Here is Diagram process base on [draft-ietf](https://datatracker.ietf.org/doc/draft-ietf-httpapi-idempotency-key-header/) :
 
-![Alt text](docs/idempotency_diagram.png)
+<img width="821" height="786" alt="idempotency" src="https://github.com/user-attachments/assets/c467bd3f-0c53-4e8e-a366-a96a8fc8350c" />
 
 <a id="features"></a>
 ## ✨ Features
