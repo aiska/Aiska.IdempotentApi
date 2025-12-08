@@ -13,7 +13,7 @@ namespace Aiska.IdempotentApi.Logging
 
             string sanitized = input.Replace("\r", "").Replace("\n", "");
             sanitized = AsciiOnly().Replace(sanitized, "");
-            return $"[{sanitized}]";
+            return sanitized;
         }
 
         [GeneratedRegex(@"[\x00-\x09\x0B-\x1F\x7F]|[^ -~]")]

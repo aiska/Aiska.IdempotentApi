@@ -38,7 +38,7 @@ namespace Aiska.IdempotentApi.Store
                     // ... (Creation logic remains the same) ...
                     using ICacheEntry entry = cache.CreateEntry(key);
                     entry.SetOptions(cacheEntryOptions);
-                    logger.CacheEntryCreated(key, absoluteExpirationRelativeToNow);
+                    logger.CacheEntryCreated(key.SanitizeInput(), absoluteExpirationRelativeToNow);
                     result = new IdempotentCacheData();
                     entry.Value = result;
                 }
@@ -55,7 +55,7 @@ namespace Aiska.IdempotentApi.Store
         {
             return new ValueTask(Task.Run(async () =>
             {
-                logger.CacheEntryCreated(key, absoluteExpirationRelativeToNow);
+                logger.CacheEntryCreated(key.SanitizeInput(), absoluteExpirationRelativeToNow);
                 cache.Set(key, value, absoluteExpirationRelativeToNow);
             }));
         }
