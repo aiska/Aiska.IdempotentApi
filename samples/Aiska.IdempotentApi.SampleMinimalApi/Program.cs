@@ -17,7 +17,7 @@ builder.Services.ConfigureHttpJsonOptions(options =>
 // Learn more about configuring OpenAPI at https://aka.ms/aspnet/openapi
 builder.Services.AddOpenApi();
 
-builder.Services.AddIdempotentApiHybridRedis(builder.Configuration);
+builder.Services.AddIdempotentApiHybridRedis("localhost:6379");
 
 var app = builder.Build();
 

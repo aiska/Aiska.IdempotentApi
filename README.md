@@ -14,8 +14,12 @@ Making your APIs reliable and resilient with idempotency.
 
 ![.NET](https://img.shields.io/badge/.NET-5C2D91?style=for-the-badge&logo=.net&logoColor=white)
 ![C#](https://img.shields.io/badge/c%23-%23239120.svg?style=for-the-badge&logo=c-sharp&logoColor=white)
-![NuGet Version](https://img.shields.io/nuget/v/Aiska.IdempotentApi)
-![NuGet Downloads](https://img.shields.io/nuget/dt/Aiska.IdempotentApi)
+
+| Package Name                                                 | Description                                                  | Release                                                      |
+| ------------------------------------------------------------ | ------------------------------------------------------------ | ------------------------------------------------------------ |
+| [IdempotentAPI](https://www.nuget.org/packages/Aiska.IdempotentApi/) | The implementation of the `IdempotentAPI` library. Using InMemory Cache | ![NuGet Version](https://img.shields.io/nuget/v/Aiska.IdempotentApi) ![NuGet Downloads](https://img.shields.io/nuget/dt/Aiska.IdempotentApi)|
+| [IdempotentAPI.Hybrid](https://www.nuget.org/packages/IdempotentAPI.AccessCache/) | implementation of the `IdempotentAPI` project using Hybrid Cache (InMemory and Distributed Cache) with support of Redis, Postgres, Sql Server| ![NuGet Version](https://img.shields.io/nuget/v/Aiska.IdempotentApi.Hybrid) ![NuGet Downloads](https://img.shields.io/nuget/dt/Aiska.IdempotentApi.Hybrid)|
+
 
 ## 📋 Table of Contents
 
@@ -157,25 +161,103 @@ dotnet build
     }
     ```
 
-### Advanced Examples
+### Advanced Usage
 
-For more advanced configuration options, see the [Configuration](#configuration) section.
+- For more advanced configuration options, see the [Configuration](#configuration) section.
+    
+    Idempotent Api using Hybrid Cache:
+    ```csharp
+    // Program.cs or Startup.cs
+    builder.Services.AddIdempotentApiHybridRedis(builder.Configuration); 
+    ```
+    redis connection is in configuration file. see [Configuration](#configuration) for more detail.
+
+    Or you can set explicitly :
+
+    ```csharp
+    builder.Services.AddIdempotentApiHybridRedis("localhost:6379");
+    ```
+    Use exclude parameter for idempotent fingerprint by add `[IdempotentExclude]`
+
+    ```csharp
+    ...
+    [ApiController]
+    [Route("[controller]")]
+    public class MyController : ControllerBase
+    {
+        [HttpPost]
+        [Idempotent]
+        public IActionResult MyAction(
+            [FromBody]
+            [IdempotentExclude("Timestamp")] // add this to exclude Timestamp properties in MyRequest object
+            MyRequest request)
+        {
+            // Your logic here
+            return Ok(new { Message = "Request processed successfully" });
+        }
+    }
+
+    public class MyRequest
+    {
+        public string Data { get; set; }
+        public DateTime? Timestamp { get; set; }
+    }
+    ```
+    or You ca also ignore parameter `[IdempotentIgnore]`
+    ```csharp
+    ...
+    [ApiController]
+    [Route("[controller]")]
+    public class MyController : ControllerBase
+    {
+        [HttpPost]
+        [Idempotent]
+        public IActionResult MyAction(
+            [FromBody]
+            [IdempotentIgnore] // ignore entire MyRequest object
+            MyRequest request)
+        {
+            // Your logic here
+            return Ok(new { Message = "Request processed successfully" });
+        }
+    }
+
+    public class MyRequest
+    {
+        public string Data { get; set; }
+        public DateTime? Timestamp { get; set; }
+    }
+    ```
 
 <a id="configuration"></a>
 ## ⚙️ Configuration
 
 ### Idempotency Key Header Name
 
-The default header name is `Idempotency-Key`. You can customize this:
+The default header name is `Idempotency-Key`. You can customize this in `appsettings.json`
 
-```csharp
-builder.Services.AddIdempotentApi(options =>
-{
-    options.KeyHeaderName = "X-Idempotency-Key";
-    options.ExpirationFromMinutes = 5;
-});
-```
+  ```json
+  {
+    "IdempotentApi": {
+      "keyHeaderName": "Idempotency-Key",
+      "expirationFromMinutes": 5,
+      "RedisConnection": "localhost:6379",
+      "errors": {
+        "missingHeaderType": "",
+        "missingHeaderTitle": "MissingHeader",
+        "missingHeaderDetail": "This operation is idempotent and it requires correct usage of Idempotency Key",
+        "reuseType": "",
+        "reuseTitle": "Idempotency-Key is already used",
+        "reuseDetail": "This operation is idempotent and it requires correct usage of Idempotency Key. Idempotency Key MUST not be reused across different payloads of this operation.",
+        "retriedType": "",
+        "retriedTitle": "A request is outstanding for this Idempotency-Key",
+        "retriedDetail": "A request with the same Idempotency-Key for the same operation is being processed or is outstanding."
+      }
+    }
+  }
+  ```
 
+- 
 ### Idempotency Cache expiration
 
 The default Cache expiration name is 5. You can customize this:

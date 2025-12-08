@@ -52,6 +52,7 @@ namespace Aiska.IdempotentApi.Extensions.DependencyInjection
 
             return services;
         }
+
         public static IServiceCollection AddIdempotentApi(this IServiceCollection services)
         {
             ArgumentNullException.ThrowIfNull(services);
@@ -63,7 +64,7 @@ namespace Aiska.IdempotentApi.Extensions.DependencyInjection
             return services;
         }
 
-        internal static IServiceCollection AddIdempotentApi<TCache>(this IServiceCollection services)
+        public static IServiceCollection AddIdempotentApi<TCache>(this IServiceCollection services)
             where TCache : class, IIdempotentCache
         {
             ArgumentNullException.ThrowIfNull(services);
