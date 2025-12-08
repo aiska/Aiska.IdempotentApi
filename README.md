@@ -18,7 +18,7 @@ Making your APIs reliable and resilient with idempotency.
 | Package Name                                                 | Description                                                  | Release                                                      |
 | ------------------------------------------------------------ | ------------------------------------------------------------ | ------------------------------------------------------------ |
 | [IdempotentAPI](https://www.nuget.org/packages/Aiska.IdempotentApi/) | The implementation of the `IdempotentAPI` library. Using InMemory Cache | ![NuGet Version](https://img.shields.io/nuget/v/Aiska.IdempotentApi) ![NuGet Downloads](https://img.shields.io/nuget/dt/Aiska.IdempotentApi)|
-| [IdempotentAPI.Hybrid](https://www.nuget.org/packages/IdempotentAPI.AccessCache/) | implementation of the `IdempotentAPI` project using Hybrid Cache (InMemory and Distributed Cache) with support of Redis, Postgres, Sql Server| ![NuGet Version](https://img.shields.io/nuget/v/Aiska.IdempotentApi.Hybrid) ![NuGet Downloads](https://img.shields.io/nuget/dt/Aiska.IdempotentApi.Hybrid)|
+| [IdempotentAPI.Hybrid](https://www.nuget.org/packages/Aiska.IdempotentApi.Hybrid) | implementation of the `IdempotentAPI` project using Hybrid Cache (InMemory and Distributed Cache) with support of Redis, Postgres, Sql Server| ![NuGet Version](https://img.shields.io/nuget/v/Aiska.IdempotentApi.Hybrid) ![NuGet Downloads](https://img.shields.io/nuget/dt/Aiska.IdempotentApi.Hybrid)|
 
 
 ## 📋 Table of Contents
