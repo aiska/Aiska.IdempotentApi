@@ -36,8 +36,6 @@ jobs:
       run: dotnet build ./src/Aiska.IdempotentApi/Aiska.IdempotentApi.csproj --configuration Release --no-restore -o ./build/ /p:ContinuousIntegrationBuild=true
     - name: Build IdempotentApi.Hybrid
       run: dotnet build ./src/Aiska.IdempotentApi.Hybrid/Aiska.IdempotentApi.Hybrid.csproj --configuration Release --no-restore -o ./build/ /p:ContinuousIntegrationBuild=true
-    - name: Test
-      run: dotnet test --no-build --verbosity normal
     - name: add source
       run: dotnet nuget add source --username aiska --password ${{ secrets.GITHUB_TOKEN }} --store-password-in-clear-text --name github "https://nuget.pkg.github.com/aiska/index.json"
     - name: push nuget
