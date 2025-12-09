@@ -361,6 +361,7 @@ MigrationBackup/
 
 # Fody - auto-generated XML schema
 FodyWeavers.xsd
-/build/Aiska.IdempotentApi.deps.json
-/build/Aiska.IdempotentApi.dll
+
+# Aiska Defined
 /build
+/tests
