@@ -10,16 +10,6 @@ on:
     branches: [ "Release" ]
 
 jobs:
-  generate-version:
-    runs-on: ubuntu-latest
-    permissions:
-      contents: write
-    steps:
-    - uses: actions/checkout@v4
-    - name: GitHub Idempotent
-      id: idempotent
-      uses: actions/checkout@v4
-
   build:
     runs-on: windows-latest
     steps:
@@ -32,7 +22,7 @@ jobs:
       env:
         NUGET_AUTH_TOKEN: ${{secrets.GITHUB_TOKEN}}    
     - name: Build IdempotentApi
-      run: dotnet build ./src/Aiska.IdempotentApi/Aiska.IdempotentApi.csproj --configuration Release --no-restore /p:ContinuousIntegrationBuild=true -o ./build/
+      run: dotnet build ./src/Aiska.IdempotentApi/Aiska.IdempotentApi.csproj --configuration Release /p:ContinuousIntegrationBuild=true -o ./build/
     - name: Build IdempotentApi
       run: dotnet pack ./src/Aiska.IdempotentApi/Aiska.IdempotentApi.csproj --configuration Release -o ./build/
     - name: push nuget
