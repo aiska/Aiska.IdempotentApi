@@ -31,8 +31,6 @@ jobs:
         source-url: https://nuget.pkg.github.com/aiska/index.json
       env:
         NUGET_AUTH_TOKEN: ${{secrets.GITHUB_TOKEN}}    
-    - name: Restore dependencies
-      run: dotnet restore
     - name: Build IdempotentApi
       run: dotnet build ./src/Aiska.IdempotentApi/Aiska.IdempotentApi.csproj --configuration Release --no-restore /p:ContinuousIntegrationBuild=true -o ./build/
     - name: Build IdempotentApi
