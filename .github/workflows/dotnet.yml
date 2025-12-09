@@ -17,22 +17,13 @@ jobs:
     - name: Setup .NET
       uses: actions/setup-dotnet@v5
       with:
-        dotnet-version: | 
-          8.0.x
-          9.0.x
-          10.0.x
+        dotnet-version: 10.0.x
         source-url: https://nuget.pkg.github.com/aiska/index.json
       env:
-        NUGET_AUTH_TOKEN: ${{secrets.GITHUB_TOKEN}}    
-    - name: Shutdown .NET Build Server
-      run: dotnet build-server shutdown
-      continue-on-error: true
-    - name: Clean the build directory using CMD
-      shell: cmd
-      run: DEL /F /S /Q "D:\a\Aiska.IdempotentApi\Aiska.IdempotentApi\build\*"
+        NUGET_AUTH_TOKEN: ${{secrets.GITHUB_TOKEN}}
     - name: Build IdempotentApi
-      run: dotnet build ./src/Aiska.IdempotentApi/Aiska.IdempotentApi.csproj --configuration Release /p:ContinuousIntegrationBuild=true -o ./build/
+      run: dotnet build ./src/Aiska.IdempotentApi/Aiska.IdempotentApi.csproj --configuration Release /p:ContinuousIntegrationBuild=true
     - name: Build IdempotentApi
-      run: dotnet pack ./src/Aiska.IdempotentApi/Aiska.IdempotentApi.csproj --configuration Release -o ./build/
+      run: dotnet pack ./src/Aiska.IdempotentApi/Aiska.IdempotentApi.csproj --configuration Release
     - name: push nuget
-      run: dotnet nuget push "./build/*.1.0.6.nupkg"
+      run: dotnet nuget push "./src/Aiska.IdempotentApi/bin/Aiska.IdempotentApi.1.0.6.nupkg"
