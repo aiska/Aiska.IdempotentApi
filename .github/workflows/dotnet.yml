@@ -12,12 +12,15 @@ on:
 jobs:
   build:
     runs-on: windows-latest
+    strategy:
+      matrix:
+        dotnet: [ '8.0.x', '9.0.x', '10.0.x' ]
     steps:
     - uses: actions/checkout@v5
     - name: Setup .NET
       uses: actions/setup-dotnet@v5
       with:
-        dotnet-version: 10.0.x
+        dotnet-version: ${{ matrix.dotnet }}
         source-url: https://nuget.pkg.github.com/aiska/index.json
       env:
         NUGET_AUTH_TOKEN: ${{secrets.GITHUB_TOKEN}}    
