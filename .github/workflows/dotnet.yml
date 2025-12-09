@@ -22,23 +22,22 @@ jobs:
 
   build:
     runs-on: windows-latest
-    permissions:
-      contents: write
-
     steps:
-    - uses: actions/checkout@v4
+    - uses: actions/checkout@v5
     - name: Setup .NET
-      uses: actions/setup-dotnet@v4
+      uses: actions/setup-dotnet@v5
       with:
         dotnet-version: 10.0.x
         source-url: https://nuget.pkg.github.com/aiska/index.json
       env:
         NUGET_AUTH_TOKEN: ${{secrets.GITHUB_TOKEN}}    
     - name: Restore dependencies
+      run: dotnet clean
+    - name: Restore dependencies
       run: dotnet restore
     - name: Build IdempotentApi
-      run: dotnet build ./src/Aiska.IdempotentApi/Aiska.IdempotentApi.csproj --configuration Release --no-restore -o ./build/ /p:ContinuousIntegrationBuild=true
-    - name: Build IdempotentApi.Hybrid
-      run: dotnet build ./src/Aiska.IdempotentApi.Hybrid/Aiska.IdempotentApi.Hybrid.csproj --configuration Release --no-restore -o ./build/ /p:ContinuousIntegrationBuild=true
+      run: dotnet build ./src/Aiska.IdempotentApi/Aiska.IdempotentApi.csproj --configuration Release --no-restore /p:ContinuousIntegrationBuild=true -o ./build/
+    - name: Build IdempotentApi
+      run: dotnet pack ./src/Aiska.IdempotentApi/Aiska.IdempotentApi.csproj --configuration Release -o ./build/
     - name: push nuget
-      run: dotnet nuget push "./build/Aiska.IdempotentApi.1.0.6.nupkg"
+      run: dotnet nuget push "./build/*.1.0.6.nupkg"
