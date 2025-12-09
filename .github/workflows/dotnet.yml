@@ -27,9 +27,9 @@ jobs:
     - name: Shutdown .NET Build Server
       run: dotnet build-server shutdown
       continue-on-error: true
-    - name: Clean build directories
-      run: |
-        find . -name "build" -type d -exec rm -rf {}
+    - name: Clean the build directory using CMD
+      shell: cmd
+      run: DEL /F /S /Q "D:\a\Aiska.IdempotentApi\Aiska.IdempotentApi\build\*"
     - name: Build IdempotentApi
       run: dotnet build ./src/Aiska.IdempotentApi/Aiska.IdempotentApi.csproj --configuration Release /p:ContinuousIntegrationBuild=true -o ./build/
     - name: Build IdempotentApi
