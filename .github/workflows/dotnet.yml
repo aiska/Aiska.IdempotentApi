@@ -27,4 +27,4 @@ jobs:
     - name: Build IdempotentApi
       run: dotnet pack ./src/Aiska.IdempotentApi/Aiska.IdempotentApi.csproj --configuration Release
     - name: push nuget
-      run: dotnet nuget push "./src/Aiska.IdempotentApi/bin/Release/*.nupkg" -k ${{secrets.GITHUB_TOKEN}} -s https://nuget.pkg.github.com/aiska/ --skip-duplicate
+      run: dotnet nuget push "./src/Aiska.IdempotentApi/bin/Release/Aiska.IdempotentApi.nupkg" -k ${{secrets.GITHUB_TOKEN}} -s https://nuget.pkg.github.com/aiska/ --skip-duplicate
